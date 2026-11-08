@@ -81,11 +81,20 @@ webRouter.post('/wepay/callback', async (c) => {
 // 更新游戏币余额（对应 WePayController::buyCoin，独立事务）
 async function buyCoin(orderId: number): Promise<void> {
   await db.transaction().execute(async (trx) => {
-    const order = await trx.selectFrom('mug_order').selectAll().where('id', '=', orderId).executeTakeFirstOrThrow();
+    const order = await trx.selectFrom('mug_order')
+      .selectAll()
+      .where('id', '=', orderId)
+      .executeTakeFirstOrThrow();
     // 加余额（安全高精度加法，杜绝字符串拼接与浮点数精度丢失）
-    const user = await trx.selectFrom('mug_user').selectAll().where('id', '=', order.user_id).executeTakeFirstOrThrow();
+    const user = await trx.selectFrom('mug_user')
+      .selectAll()
+      .where('id', '=', order.user_id)
+      .executeTakeFirstOrThrow();
     const balance = addMoney(user.balance, order.num);
-    await trx.updateTable('mug_user').set({balance, update_time: tsNow()}).where('id', '=', user.id).execute();
+    await trx.updateTable('mug_user')
+      .set({balance, update_time: tsNow()})
+      .where('id', '=', user.id)
+      .execute();
     // 记录
     await insertBalanceLog(trx, {
       user_id: user.id,

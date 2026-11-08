@@ -134,9 +134,9 @@ export default function BuyPage() {
             <Text className='num'>{available.balance || '0.00'}</Text>
           </View>
         </View>
-        {available.days > 0 && (
+        {(available.arcade_days > 0 || available.days > 0) && (
           <View className='vip-tag'>
-            <Text>畅玩剩余 {available.days} 天</Text>
+            <Text>音游畅玩剩余 {available.arcade_days ?? available.days} 天</Text>
           </View>
         )}
       </View>

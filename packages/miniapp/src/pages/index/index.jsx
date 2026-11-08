@@ -133,22 +133,22 @@ export default function IndexPage() {
     }
   })
 
-  // 通行证有效性与剩余天数计算
+  // 通行证有效性与剩余天数计算（TCG 专区门票）
   const isPassValid = useMemo(() => {
-    return (available.days && available.days > 0) || mockPassActive
-  }, [available.days, mockPassActive])
+    return (available.tcg_days && available.tcg_days > 0) || mockPassActive
+  }, [available.tcg_days, mockPassActive])
 
   const passDaysRemaining = useMemo(() => {
-    if (available.days && available.days > 0) return available.days
+    if (available.tcg_days && available.tcg_days > 0) return available.tcg_days
     return mockPassPlan === 'day' ? 1 : 30
-  }, [available.days, mockPassPlan])
+  }, [available.tcg_days, mockPassPlan])
 
   const passTypeName = useMemo(() => {
-    if (available.days && available.days > 0) {
-      return available.days > 1 ? '尊享决斗月卡' : '天卡'
+    if (available.tcg_days && available.tcg_days > 0) {
+      return available.tcg_days > 1 ? '尊享决斗月卡' : '天卡'
     }
     return mockPassPlan === 'day' ? '天卡' : '尊享决斗月卡'
-  }, [available.days, mockPassPlan])
+  }, [available.tcg_days, mockPassPlan])
 
   // 演示体验开关
   const toggleMockPass = () => {
@@ -168,7 +168,7 @@ export default function IndexPage() {
   const handlePassActivated = ({ plan, newExpire }) => {
     const currentBalance = Number(available.balance || 0)
     authStore.available.balance = (currentBalance - plan.price).toFixed(2)
-    authStore.available.days = (authStore.available.days || 0) + (plan.id === 'day' ? 1 : 30)
+    authStore.available.tcg_days = (authStore.available.tcg_days || 0) + (plan.id === 'day' ? 1 : 30)
     setAvailable({ ...authStore.available })
 
     setMockPassActive(true)
@@ -206,7 +206,8 @@ export default function IndexPage() {
   // 投币方式计算：0禁止 1余额 2时间
   const insertType = useMemo(() => {
     if (selectedDevice) {
-      if (available.days > 0 && selectedDevice.can_use_days) {
+      const arcadeDays = available.arcade_days ?? available.days ?? 0
+      if (arcadeDays > 0 && selectedDevice.can_use_days) {
         return 2
       } else if (available.balance >= selectedDevice.price) {
         return 1
@@ -508,7 +509,7 @@ export default function IndexPage() {
           insertType={insertType}
           insertSubText={insertSubText}
           onInsert={handleInsert}
-          days={available?.days || 0}
+          days={available?.arcade_days ?? available?.days ?? 0}
         />
       )}
 

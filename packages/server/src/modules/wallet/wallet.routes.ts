@@ -81,7 +81,7 @@ walletRouter.use('*', userAuth);
 
 /**
  * GET /api/v1/wallet/assets
- * 获取用户当前资产概要（余额、音游通行证天数、TCG通行证天数）
+ * 获取用户当前资产概要（余额、音游通行证天数 arcade_days、TCG卡牌通行证天数 tcg_days）
  */
 walletRouter.get('/assets', (c) => {
   const user = currentUser(c);
@@ -90,7 +90,7 @@ walletRouter.get('/assets', (c) => {
     balance: toMoney(user.balance),
     arcade_days: arcadeDays,
     tcg_days: 0, // 预留给 TCG 卡牌门票天数
-    days: arcadeDays, // 向下兼容旧小程序代码
+    days: arcadeDays, // 兼容过渡
   }));
 });
 

@@ -7,6 +7,8 @@ class AuthStore {
     this.user = null
     this.available = {
       balance: 0,
+      arcade_days: 0,
+      tcg_days: 0,
       days: 0,
     }
     this.listeners = new Set()
@@ -60,14 +62,22 @@ class AuthStore {
   }
 
   setAvailable(a) {
-    this.available = a || { balance: 0, days: 0 }
+    const raw = a || {}
+    const arcadeDays = raw.arcade_days ?? raw.days ?? 0
+    const tcgDays = raw.tcg_days ?? 0
+    this.available = {
+      balance: raw.balance || 0,
+      arcade_days: arcadeDays,
+      tcg_days: tcgDays,
+      days: arcadeDays,
+    }
     this.notify()
   }
 
   clear() {
     this.token = ''
     this.user = null
-    this.available = { balance: 0, days: 0 }
+    this.available = { balance: 0, arcade_days: 0, tcg_days: 0, days: 0 }
     this.notify()
   }
 
