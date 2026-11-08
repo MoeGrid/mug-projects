@@ -1,37 +1,103 @@
 // 卡牌专区领域路由（TCG）
 import { Hono } from 'hono';
+import { z } from 'zod';
+import { db } from '../../db/client.js';
 import { userAuth } from '../../utils/middleware.js';
-import { ok } from '../../utils/responses.js';
+import { body } from '../../utils/validator.js';
+import { AppError, ok } from '../../utils/responses.js';
+import { calculateTcgExpire, daysFromTcgExpire } from '../../utils/date.js';
+import { subMoney, toMoney } from '../../utils/money.js';
+import { findUser, updateUser } from '../../models/user.js';
+import { insertBalanceLog } from '../../models/balance_log.js';
 
 export const tcgRouter = new Hono();
 
 tcgRouter.use('*', userAuth);
+
+const currentUser = (c) => c.get('user');
+
+export const TCG_PASS_PLANS = {
+  day: {
+    id: 'day',
+    name: '单日天卡 (+1天)',
+    price: 15,
+    days: 1,
+    badge: '单日门票',
+    desc: '当天有效，次日早 6:00 前有效，可自由累加',
+  },
+  monthly: {
+    id: 'monthly',
+    name: '尊享决斗月卡 (+30天)',
+    price: 180,
+    days: 30,
+    badge: '热门推荐',
+    desc: '包含当天整整30天，统一早 6:00 结算，可自由累加',
+  },
+};
 
 /**
  * GET /api/v1/tcg/passes/options
  * 获取 TCG 卡牌通行证套餐配置
  */
 tcgRouter.get('/passes/options', (c) => {
-  return c.json(
-    ok([
-      {
-        id: 'day',
-        name: 'TCG 单日通行证',
-        price: 15,
-        days: 1,
-        badge: '今日畅玩',
-        desc: '当日不限时畅玩卡牌专区与桌游',
-      },
-      {
-        id: 'month',
-        name: 'TCG 30天全月通行证',
-        price: 180,
-        days: 30,
-        badge: '超值推荐',
-        desc: '连续 30 天无限次畅玩，专属身份勋章',
-      },
-    ])
+  return c.json(ok(Object.values(TCG_PASS_PLANS)));
+});
+
+/**
+ * POST /api/v1/tcg/passes/recharge
+ * 使用账户余额开通/续期 TCG 通行证天数（支持累加）
+ */
+tcgRouter.post('/passes/recharge', async (c) => {
+  const { planId } = await body(
+    c,
+    z.object({
+      planId: z.enum(['day', 'monthly'], {
+        errorMap: () => ({ message: '无效的通行证方案' }),
+      }),
+    })
   );
+
+  const plan = TCG_PASS_PLANS[planId];
+  const user = currentUser(c);
+
+  return db.transaction().execute(async (trx) => {
+    const freshUser = await findUser(trx, user.id);
+    if (!freshUser) throw new AppError('用户不存在');
+
+    const currentBalance = freshUser.balance;
+    if (Number(currentBalance) < plan.price) {
+      throw new AppError(`账户余额不足（当前 ¥${toMoney(currentBalance)}，需要 ¥${plan.price}），请先充值`);
+    }
+
+    const newBalance = subMoney(currentBalance, plan.price);
+    const newExpire = calculateTcgExpire(freshUser.tcg_expire_date, plan.days);
+
+    // 1. 更新用户余额与 TCG 到期时间
+    await updateUser(trx, user.id, {
+      balance: newBalance,
+      tcg_expire_date: newExpire,
+    });
+
+    // 2. 写入账单流水（类型 6 代表 TCG 门票/通行证办理）
+    await insertBalanceLog(trx, {
+      user_id: user.id,
+      num: -plan.price,
+      balance: newBalance,
+      type: 4, // 对应余额扣减
+    });
+
+    const remainingDays = daysFromTcgExpire(newExpire);
+
+    return c.json(
+      ok({
+        plan: plan.name,
+        add_days: plan.days,
+        tcg_days: remainingDays,
+        tcg_expire_date: newExpire,
+        balance: toMoney(newBalance),
+      })
+    );
+  });
 });
 
 /**

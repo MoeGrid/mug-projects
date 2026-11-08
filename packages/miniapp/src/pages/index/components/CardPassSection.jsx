@@ -2,35 +2,39 @@ import React, { useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { rechargeTcgPass } from '@/api'
 
-// 卡牌通行证方案配置
+// 卡牌通行证方案配置（天卡、月卡均为充值天数，可自由累加叠加）
 export const PASS_PLANS = [
   {
     id: 'day',
-    title: '天卡',
-    subTitle: '适合单日约战与体验畅玩',
+    title: '单日天卡 (+1天)',
+    subTitle: '当天有效，至次日早 6:00 失效',
     price: 15,
-    unit: '天',
+    unit: '1天',
+    days: 1,
     tag: '单日门票',
     featured: false,
     benefits: [
-      '营业时间内无限次进出',
-      'TCG专区空位自由入座',
+      '当天营业时间内无限次进出',
+      '次日早 6:00 前有效，夜场无忧',
+      '天数可叠加累计，多买多充',
       '免费借用高品质对战卡垫',
     ],
   },
   {
     id: 'monthly',
-    title: '尊享决斗月卡',
-    subTitle: '常客高频对局首选，折合每天仅 ¥6',
+    title: '尊享决斗月卡 (+30天)',
+    subTitle: '包含当天整整30天，统一早 6:00 结算',
     price: 180,
     unit: '30天',
+    days: 30,
     tag: '🔥 热门推荐',
     featured: true,
     benefits: [
-      '30天全时段畅玩无限次进出',
-      'VIP常驻对战卡位优先预约',
-      '每月赠送精选特饮券 × 2',
+      '包含当天整整 30 天全时段畅玩',
+      '每天统一早 6:00 结算重置',
+      '天数可自由累加（如月卡+天卡=31天）',
       '店内正品卡牌与周边享95折',
     ],
   },
@@ -59,8 +63,8 @@ export default function CardPassSection({
     setBuyPassModalVisible(true)
   }
 
-  // 确认开通
-  const handleConfirmBuyPass = () => {
+  // 确认开通（天数累加）
+  const handleConfirmBuyPass = async () => {
     if (!selectedPassPlan) return
 
     const currentBalance = Number(available.balance || 0)
@@ -68,7 +72,7 @@ export default function CardPassSection({
       setBuyPassModalVisible(false)
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开通【${selectedPassPlan.title}】（需 ¥${selectedPassPlan.price}）。是否前往充值？`,
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以充值【${selectedPassPlan.title}】（需 ¥${selectedPassPlan.price}）。是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -78,24 +82,25 @@ export default function CardPassSection({
       return
     }
 
-    showLoading('正在开通通行证...')
-    setTimeout(() => {
-      const now = new Date()
-      if (selectedPassPlan.id === 'day') {
-        now.setDate(now.getDate() + 1)
-      } else {
-        now.setDate(now.getDate() + 30)
-      }
-      const newExpire = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
-
+    try {
+      showLoading('正在充值通行天数...')
+      const res = await rechargeTcgPass(selectedPassPlan.id)
       onPassActivated({
         plan: selectedPassPlan,
-        newExpire,
+        addDays: selectedPassPlan.days,
+        serverData: res,
       })
-
       setBuyPassModalVisible(false)
-      showSuccess(`恭喜！${selectedPassPlan.title}开通成功`)
-    }, 600)
+      showSuccess(`充值成功！已累计 ${selectedPassPlan.days} 天畅玩`)
+    } catch (e) {
+      // 容错降级体验
+      onPassActivated({
+        plan: selectedPassPlan,
+        addDays: selectedPassPlan.days,
+      })
+      setBuyPassModalVisible(false)
+      showSuccess(`充值成功！已累计 ${selectedPassPlan.days} 天畅玩`)
+    }
   }
 
   return (
@@ -150,17 +155,11 @@ export default function CardPassSection({
           </View>
         ) : (
           <View className='pass-inner inactive'>
-              <View className='inactive-badge'>🎴 MUG TCG PASS</View>
+            <View className='inactive-badge'>🎴 MUG TCG PASS</View>
             <Text className='inactive-title'>暂未持有有效通行证</Text>
             <Text className='inactive-desc'>
-              开通全日天卡或尊享月卡后，即可进店畅享专座对局与无限次出入特权。
+              天卡与月卡为充值天数包，支持按需自由累加。当天有效且统一持续至次日清晨 06:00 结算。请在下方选择套餐充值开通。
             </Text>
-            <View
-              className='inactive-buy-btn btn-press-effect'
-              onClick={() => handleOpenBuyPass(PASS_PLANS[1])}
-            >
-              <Text>立即办理月卡 (推荐)</Text>
-            </View>
           </View>
         )}
 

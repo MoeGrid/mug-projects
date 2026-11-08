@@ -526,6 +526,11 @@
         animation: neonGlow 3s infinite ease-in-out;
       }
 
+      &.is-free-pass {
+        background: linear-gradient(135deg, #0984e3 0%, #6c5ce7 100%);
+        box-shadow: 0 12px 32px rgba(9, 132, 227, 0.45);
+      }
+
       &.disabled {
         background: #dcdde1;
         box-shadow: none;
@@ -783,12 +788,12 @@
         }
 
         .inactive-desc {
-          font-size: 22px;
-          color: rgba(255, 255, 255, 0.65);
-          line-height: 1.5;
-          margin: 12px auto 22px;
+          font-size: 24px;
+          color: rgba(255, 255, 255, 0.7);
+          line-height: 1.6;
+          margin: 16px auto 10px;
           display: block;
-          max-width: 90%;
+          max-width: 92%;
         }
 
         .inactive-buy-btn {

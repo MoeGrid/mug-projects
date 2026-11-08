@@ -7,7 +7,7 @@ import * as Snowflake from '../../services/snowflake.js';
 import { userAuth } from '../../utils/middleware.js';
 import { body, zInt, zNum } from '../../utils/validator.js';
 import { AppError, ok } from '../../utils/responses.js';
-import { dateTimeStr, daysFromExpire, now, parseDate, tsNow } from '../../utils/date.js';
+import { dateTimeStr, daysFromExpire, daysFromTcgExpire, now, parseDate, tsNow } from '../../utils/date.js';
 import { addMoney, toCents, toMoney } from '../../utils/money.js';
 import { findActiveEvent, listActiveEvents } from '../../models/event.js';
 import { createOrder, findOrderByWeOrderId, updateOrder } from '../../models/order.js';
@@ -77,11 +77,12 @@ walletRouter.use('*', userAuth);
 walletRouter.get('/assets', (c) => {
   const user = currentUser(c);
   const arcadeDays = daysFromExpire(user.expire_date);
+  const tcgDays = daysFromTcgExpire(user.tcg_expire_date);
   return c.json(
     ok({
       balance: toMoney(user.balance),
       arcade_days: arcadeDays,
-      tcg_days: 0,
+      tcg_days: tcgDays,
       days: arcadeDays,
     })
   );

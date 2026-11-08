@@ -1,8 +1,15 @@
 // User 数据访问
-import { daysFromExpire, tsNow } from '../utils/date.js';
+import { daysFromExpire, daysFromTcgExpire, tsNow } from '../utils/date.js';
 
 export function withDays(user) {
-  return { ...user, days: daysFromExpire(user.expire_date) };
+  const arcadeDays = daysFromExpire(user.expire_date);
+  const tcgDays = daysFromTcgExpire(user.tcg_expire_date);
+  return {
+    ...user,
+    days: arcadeDays,
+    arcade_days: arcadeDays,
+    tcg_days: tcgDays,
+  };
 }
 
 export function toPublic(user) {

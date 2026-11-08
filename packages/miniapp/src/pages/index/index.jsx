@@ -32,6 +32,46 @@ import './index.scss'
 
 const DEFAULT_AVATAR = '/static/avatar.jpg'
 
+// 腾讯游戏活动式清晨 06:00:00 结算与天数累加算法
+function calcTcgPassExpiration(currentExpireStr, addDays) {
+  const now = new Date()
+  let baseDate = null
+
+  if (currentExpireStr) {
+    const parsed = new Date(currentExpireStr.replace(/-/g, '/'))
+    if (!isNaN(parsed.getTime()) && parsed.getTime() > now.getTime()) {
+      baseDate = new Date(parsed.getTime())
+    }
+  }
+
+  if (!baseDate) {
+    // 首次开通或已过期：以当天 06:00:00 为基点
+    baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0, 0)
+  }
+
+  baseDate.setDate(baseDate.getDate() + addDays)
+  baseDate.setHours(6, 0, 0, 0)
+
+  const y = baseDate.getFullYear()
+  const m = String(baseDate.getMonth() + 1).padStart(2, '0')
+  const d = String(baseDate.getDate()).padStart(2, '0')
+  const newExpire = `${y}-${m}-${d} 06:00`
+
+  const diffMs = baseDate.getTime() - now.getTime()
+  const remainingDays = Math.max(Math.ceil(diffMs / (24 * 60 * 60 * 1000)), 0)
+
+  return { newExpire, remainingDays }
+}
+
+function calcDaysRemaining(expireStr) {
+  if (!expireStr) return 0
+  const expire = new Date(expireStr.replace(/-/g, '/'))
+  const now = new Date()
+  const diff = expire.getTime() - now.getTime()
+  if (diff <= 0) return 0
+  return Math.ceil(diff / (24 * 60 * 60 * 1000))
+}
+
 export default function IndexPage() {
   const { toastProps, showLoading, showSuccess, showError, showText, hideToast } = useToast()
   const [user, setUser] = useState(authStore.user)
@@ -125,30 +165,35 @@ export default function IndexPage() {
     try {
       const saved = Taro.getStorageSync('mock_card_pass_expire')
       if (saved) return saved
-      const d = new Date()
-      d.setDate(d.getDate() + 30)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      const { newExpire } = calcTcgPassExpiration(null, 30)
+      return newExpire
     } catch (e) {
-      return '2026-12-08'
+      return '2026-12-09 06:00'
     }
   })
 
   // 通行证有效性与剩余天数计算（TCG 专区门票）
-  const isPassValid = useMemo(() => {
-    return (available.tcg_days && available.tcg_days > 0) || mockPassActive
-  }, [available.tcg_days, mockPassActive])
-
   const passDaysRemaining = useMemo(() => {
     if (available.tcg_days && available.tcg_days > 0) return available.tcg_days
-    return mockPassPlan === 'day' ? 1 : 30
-  }, [available.tcg_days, mockPassPlan])
+    if (mockPassActive && mockPassExpire) {
+      return calcDaysRemaining(mockPassExpire)
+    }
+    return 0
+  }, [available.tcg_days, mockPassActive, mockPassExpire])
+
+  const isPassValid = useMemo(() => {
+    return passDaysRemaining > 0 || (mockPassActive && calcDaysRemaining(mockPassExpire) > 0)
+  }, [passDaysRemaining, mockPassActive, mockPassExpire])
 
   const passTypeName = useMemo(() => {
-    if (available.tcg_days && available.tcg_days > 0) {
-      return available.tcg_days > 1 ? '尊享决斗月卡' : '天卡'
+    if (passDaysRemaining > 1) {
+      return `尊享决斗月卡 (${passDaysRemaining}天有效)`
     }
-    return mockPassPlan === 'day' ? '天卡' : '尊享决斗月卡'
-  }, [available.tcg_days, mockPassPlan])
+    if (passDaysRemaining === 1) {
+      return '单日通行天卡'
+    }
+    return '未持有通行证'
+  }, [passDaysRemaining])
 
   // 演示体验开关
   const toggleMockPass = () => {
@@ -164,21 +209,37 @@ export default function IndexPage() {
     }
   }
 
-  // 通行证办理成功回调
-  const handlePassActivated = ({ plan, newExpire }) => {
-    const currentBalance = Number(available.balance || 0)
-    authStore.available.balance = (currentBalance - plan.price).toFixed(2)
-    authStore.available.tcg_days = (authStore.available.tcg_days || 0) + (plan.id === 'day' ? 1 : 30)
+  // 通行证充值天数成功回调（天数累加）
+  const handlePassActivated = ({ plan, addDays = 1, serverData }) => {
+    let finalExpire = ''
+    let finalDays = 0
+
+    if (serverData && serverData.tcg_expire_date) {
+      finalExpire = serverData.tcg_expire_date
+      finalDays = serverData.tcg_days
+      authStore.available.balance = serverData.balance
+    } else {
+      const currentBalance = Number(available.balance || 0)
+      authStore.available.balance = Math.max(currentBalance - plan.price, 0).toFixed(2)
+      const res = calcTcgPassExpiration(
+        mockPassActive ? mockPassExpire : null,
+        addDays
+      )
+      finalExpire = res.newExpire
+      finalDays = res.remainingDays
+    }
+
+    authStore.available.tcg_days = finalDays
     setAvailable({ ...authStore.available })
 
     setMockPassActive(true)
-    setMockPassPlan(plan.id)
-    setMockPassExpire(newExpire)
+    setMockPassPlan(finalDays > 1 ? 'monthly' : 'day')
+    setMockPassExpire(finalExpire)
 
     try {
       Taro.setStorageSync('mock_card_pass_active', true)
-      Taro.setStorageSync('mock_card_pass_plan', plan.id)
-      Taro.setStorageSync('mock_card_pass_expire', newExpire)
+      Taro.setStorageSync('mock_card_pass_plan', finalDays > 1 ? 'monthly' : 'day')
+      Taro.setStorageSync('mock_card_pass_expire', finalExpire)
     } catch (e) {}
   }
 
@@ -218,7 +279,8 @@ export default function IndexPage() {
 
   const insertSubText = useMemo(() => {
     if (!selectedDevice) return '请先选择机台'
-    if (insertType > 0) return `扣除余额 ¥${selectedDevice.price} / ${selectedDevice.unit || '次'}`
+    if (insertType === 2) return '畅玩特权生效中 · 本次投币免扣币'
+    if (insertType === 1) return `扣除余额 ¥${selectedDevice.price} / ${selectedDevice.unit || '次'}`
     return `余额不足 (需要 ¥${selectedDevice.price})，请先充值`
   }, [insertType, selectedDevice])
 
@@ -388,7 +450,7 @@ export default function IndexPage() {
       }
 
       await authStore.refreshAvailable()
-      showSuccess('投币成功！')
+      showSuccess(insertType === 2 ? '畅玩投币成功 (免扣币)' : '投币成功！')
     } catch (e) {
       console.error(e)
       hideToast()

@@ -30,7 +30,7 @@ export function parseDate(dateInput) {
 }
 
 /**
- * 剩余天数计算
+ * 剩余天数计算（音游原逻辑，以自然日整点换算）
  * @param {string | Date | null | undefined} expireDate
  */
 export function daysFromExpire(expireDate) {
@@ -39,6 +39,46 @@ export function daysFromExpire(expireDate) {
   if (Number.isNaN(expire)) return 0;
   const today = parseDate(dateStr());
   return Math.max(Math.floor((expire - today) / 86400000) + 1, 0);
+}
+
+/**
+ * 腾讯游戏活动式清晨 06:00:00 结算与天数累加算法
+ * @param {string | Date | null | undefined} currentExpireDate 当前已有到期时间
+ * @param {number} addDays 充值天数（天卡 1 天，月卡 30 天）
+ * @returns {string} 统一早 6:00:00 到期的标准北京时间字符串
+ */
+export function calculateTcgExpire(currentExpireDate, addDays) {
+  const currentTs = dayjs().tz(TZ);
+  let base;
+  if (currentExpireDate) {
+    const parsed = dayjs.tz(currentExpireDate, TZ);
+    if (parsed.isValid() && parsed.isAfter(currentTs)) {
+      // 尚在有效期内：以现有到期时间为基准顺延
+      base = parsed;
+    }
+  }
+
+  if (!base) {
+    // 首次开通或已过期：以当天 06:00:00 为基点
+    base = dayjs().tz(TZ).startOf('day').hour(6).minute(0).second(0);
+  }
+
+  // 累加 addDays 天，时间严格锁定在次日/第N天早 06:00:00
+  return base.add(addDays, 'day').hour(6).minute(0).second(0).format('YYYY-MM-DD HH:mm:ss');
+}
+
+/**
+ * 计算距离早 06:00:00 到期的剩余天数
+ * @param {string | Date | null | undefined} expireDate
+ * @returns {number} 剩余天数（当天有效未过6点至少为1天）
+ */
+export function daysFromTcgExpire(expireDate) {
+  if (!expireDate) return 0;
+  const expire = dayjs.tz(expireDate, TZ);
+  const nowTs = dayjs().tz(TZ);
+  if (!expire.isValid() || expire.isBefore(nowTs)) return 0;
+  const diffMs = expire.diff(nowTs, 'millisecond');
+  return Math.max(Math.ceil(diffMs / 86400000), 0);
 }
 
 /** 当前北京时间加减天数 */

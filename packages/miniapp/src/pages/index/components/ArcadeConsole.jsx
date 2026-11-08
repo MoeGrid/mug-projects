@@ -88,12 +88,12 @@ export default function ArcadeConsole({
         <View
           className={`insert-button btn-press-effect ${
             insertType > 0 ? 'can-insert' : 'disabled'
-          }`}
+          } ${insertType === 2 ? 'is-free-pass' : ''}`}
           onClick={onInsert}
         >
           <View className='insert-main-text'>
-            <Text className='coin-icon'>🪙</Text>
-            <Text>INSERT COIN 投币</Text>
+            <Text className='coin-icon'>{insertType === 2 ? '⚡' : '🪙'}</Text>
+            <Text>{insertType === 2 ? '畅玩投币 (不扣币)' : 'INSERT COIN 投币'}</Text>
           </View>
           <Text className='insert-sub-text'>{insertSubText}</Text>
         </View>
