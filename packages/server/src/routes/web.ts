@@ -6,6 +6,7 @@ import {parse} from '../utils/validator.js';
 import {z} from 'zod';
 import {AppError} from '../utils/responses.js';
 import {dateTimeStr, parseDate, tsNow} from '../utils/date.js';
+import {addMoney, toCents, toMoney} from '../utils/money.js';
 import {findOrderByWeOrderId, updateOrder} from '../models/order.js';
 import {insertBalanceLog} from '../models/balance_log.js';
 import type {Env} from '../app.js';
@@ -59,8 +60,8 @@ webRouter.post('/wepay/callback', async (c) => {
       const order = await findOrderByWeOrderId(db, String(decrypted.out_trade_no));
       // 判断订单状态
       if (order && order.status === 0) {
-        // 检查支付金额
-        if (Math.trunc(order.amount * 100) !== decrypted.amount.total) throw new AppError('订单支付金额错误');
+        // 检查支付金额（转分比对，彻底杜绝浮点数截断问题）
+        if (toCents(order.amount) !== decrypted.amount.total) throw new AppError('订单支付金额错误');
         // 更新订单（pay_time = date('Y-m-d H:i:s', strtotime(success_time))）
         const payTime = dateTimeStr(new Date(parseDate(decrypted.success_time)));
         await updateOrder(db, order.id, {pay_time: payTime, status: 1});
@@ -81,15 +82,15 @@ webRouter.post('/wepay/callback', async (c) => {
 async function buyCoin(orderId: number): Promise<void> {
   await db.transaction().execute(async (trx) => {
     const order = await trx.selectFrom('mug_order').selectAll().where('id', '=', orderId).executeTakeFirstOrThrow();
-    // 加余额
+    // 加余额（安全高精度加法，杜绝字符串拼接与浮点数精度丢失）
     const user = await trx.selectFrom('mug_user').selectAll().where('id', '=', order.user_id).executeTakeFirstOrThrow();
-    const balance = user.balance + order.num;
+    const balance = addMoney(user.balance, order.num);
     await trx.updateTable('mug_user').set({balance, update_time: tsNow()}).where('id', '=', user.id).execute();
     // 记录
     await insertBalanceLog(trx, {
       user_id: user.id,
       balance,
-      num: order.num,
+      num: toMoney(order.num),
       type: 3,
     });
   });

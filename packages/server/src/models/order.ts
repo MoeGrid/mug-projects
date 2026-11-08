@@ -18,10 +18,16 @@ export async function createOrder(dbh: Q, data: Insertable<MugOrderTable>): Prom
 
 /** Order::where('we_order_id', ...)->find() */
 export async function findOrderByWeOrderId(dbh: Q, weOrderId: string): Promise<OrderRow | undefined> {
-  return await dbh.selectFrom('mug_order').selectAll().where('we_order_id', '=', weOrderId).executeTakeFirst();
+  return await dbh.selectFrom('mug_order')
+    .selectAll()
+    .where('we_order_id', '=', weOrderId)
+    .executeTakeFirst();
 }
 
 /** $order->save() 更新分支 */
 export async function updateOrder(dbh: Q, id: number, data: Updateable<MugOrderTable>): Promise<void> {
-  await dbh.updateTable('mug_order').set({...data, update_time: tsNow()}).where('id', '=', id).execute();
+  await dbh.updateTable('mug_order')
+    .set({...data, update_time: tsNow()})
+    .where('id', '=', id)
+    .execute();
 }

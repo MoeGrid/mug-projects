@@ -27,12 +27,18 @@ export function toPublic(user: UserRow | UserWithDays): Record<string, unknown> 
 
 /** User::find($id) */
 export async function findUser(dbh: Q, id: number): Promise<UserRow | undefined> {
-  return await dbh.selectFrom('mug_user').selectAll().where('id', '=', id).executeTakeFirst();
+  return await dbh.selectFrom('mug_user')
+    .selectAll()
+    .where('id', '=', id)
+    .executeTakeFirst();
 }
 
 /** User::where('open_id', ...)->find() */
 export async function findUserByOpenId(dbh: Q, openId: string): Promise<UserRow | undefined> {
-  return await dbh.selectFrom('mug_user').selectAll().where('open_id', '=', openId).executeTakeFirst();
+  return await dbh
+    .selectFrom('mug_user')
+    .selectAll().where('open_id', '=', openId)
+    .executeTakeFirst();
 }
 
 /** $user->save() 新增分支（create_time/update_time 自动写入，等价 autoWriteTimestamp） */

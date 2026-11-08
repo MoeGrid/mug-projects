@@ -6,6 +6,7 @@ import {body, zFlag, zInt, zNum} from '../utils/validator.js';
 import {z} from 'zod';
 import {AppError, ok} from '../utils/responses.js';
 import {dateOffsetDays, tsNow} from '../utils/date.js';
+import {addMoney, toMoney} from '../utils/money.js';
 import {insertBalanceLog} from '../models/balance_log.js';
 import {findUser, type Q, toPublic, updateUser, withDays} from '../models/user.js';
 import type {Env} from '../app.js';
@@ -96,14 +97,14 @@ adminUserRouter.post('/admin/user/rechange', async (c) => {
     const user = await findUser(trx, id);
     if (!user) throw new AppError('用户不存在!');
     if (type === 1) {
-      // 变动余额
-      const balance = Math.max(user.balance + num, 0);
+      // 变动余额（高精度加法，防止字符串拼接与浮点数精度丢失）
+      const balance = Math.max(addMoney(user.balance, num), 0);
       await trx.updateTable('mug_user').set({balance, update_time: tsNow()}).where('id', '=', user.id).execute();
       // 记录
       await insertBalanceLog(trx, {
         user_id: user.id,
         balance,
-        num,
+        num: toMoney(num),
         type: 4,
       });
     } else if (type === 2) {

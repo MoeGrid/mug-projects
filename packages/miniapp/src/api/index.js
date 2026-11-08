@@ -2,7 +2,7 @@ import Taro from '@tarojs/taro'
 import { authStore } from '@/stores/auth.js'
 import { joinUrl } from '@/utils/misc.js'
 
-export const baseUrl = 'https://v1.mug.moegrid.com'
+export const baseUrl = 'https://v2.mug.moegrid.com'
 
 // 无需预检 Token 的白名单路径（防止递归死循环）
 const NO_AUTH_PATHS = ['/user/login']

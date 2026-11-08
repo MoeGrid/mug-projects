@@ -14,6 +14,7 @@ import {z} from 'zod';
 import {AppError, ok} from '../utils/responses.js';
 import {fileExists, moveTmpToImage, putFile} from '../utils/storage.js';
 import {daysFromExpire, now, tsNow} from '../utils/date.js';
+import {addMoney, subMoney, toMoney} from '../utils/money.js';
 import {findActiveEvent, getSetting, listActiveEvents} from '../models/event.js';
 import {createOrder} from '../models/order.js';
 import {insertBalanceLog} from '../models/balance_log.js';
@@ -93,7 +94,7 @@ userRouter.post('/user/phone', async (c) => {
 userRouter.post('/user/available', (c) => {
   const user = currentUser(c);
   return c.json(ok({
-    balance: user.balance,
+    balance: toMoney(user.balance),
     days: daysFromExpire(user.expire_date),
   }));
 });
@@ -103,16 +104,16 @@ async function settleCoinInTrx(trx: Q, trxUser: UserRow, device: DeviceRow, oper
   const days = daysFromExpire(trxUser.expire_date);
   let num: number;
   let type: number;
-  let balance = trxUser.balance;
+  let balance = toMoney(trxUser.balance);
   if (days > 0 && Boolean(device.can_use_days)) {
     // 免费天数
     num = 0;
     type = 2;
   } else {
     // 投币
-    balance = trxUser.balance - device.price;
+    balance = subMoney(trxUser.balance, device.price);
     await trx.updateTable('mug_user').set({balance, update_time: tsNow()}).where('id', '=', trxUser.id).execute();
-    num = -device.price;
+    num = -toMoney(device.price);
     type = 1;
   }
   await insertBalanceLog(trx, {
@@ -159,7 +160,7 @@ userRouter.post('/user/use2', async (c) => {
     if (!user) throw new AppError('用户不存在!');
     const days = daysFromExpire(user.expire_date);
     // 检查是否达到投币条件
-    if (user.balance < device.price && days <= 0) throw new AppError('余额不足!');
+    if (toMoney(user.balance) < toMoney(device.price) && days <= 0) throw new AppError('余额不足!');
     // 直连 MQTT 发布投币指令并等待回执（不再预检查在线，5s 无回执即超时）
     const msgId = nextMsgId();
     let resp: { code: number } | null;
