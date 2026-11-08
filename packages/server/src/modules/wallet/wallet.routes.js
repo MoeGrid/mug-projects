@@ -187,8 +187,7 @@ walletRouter.get('/transactions', async (c) => {
   const buildQuery = () =>
     db
       .selectFrom('mug_balance_log')
-      .where('user_id', '=', user.id)
-      .where('create_time', '>', '2023-05-18 11:00:00');
+      .where('user_id', '=', user.id);
 
   const totalRow = await buildQuery().select(({ fn }) => fn.countAll().as('cnt')).executeTakeFirst();
   const total = Number(totalRow?.cnt ?? 0);
