@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import Taro, { useRouter } from '@tarojs/taro'
+import { useRouter } from '@tarojs/taro'
 import { View, Text, Button, Input, Switch } from '@tarojs/components'
 import {
   AtTabs,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import Taro, { useReachBottom, useDidShow } from '@tarojs/taro'
+import Taro, { useReachBottom } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { AtSearchBar, AtAvatar, AtTag, AtLoadMore, AtToast } from 'taro-ui'
 
