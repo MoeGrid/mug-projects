@@ -44,7 +44,8 @@ adminRouter.get('/users', async (c) => {
 
   const users = await buildQuery()
     .selectAll()
-    .orderBy('id', 'desc')
+    .orderBy('is_admin', 'desc')
+    .orderBy('id', 'asc')
     .limit(rows)
     .offset((page - 1) * rows)
     .execute();
