@@ -186,12 +186,7 @@ export default function RecordPage() {
                             : '街机投币'}
                         </Text>
                       </View>
-                      <View className='sub-info-row'>
-                        <Text className='channel-tag'>
-                          {item.channel === 1 ? '蓝牙直连' : '远程脉冲'}
-                        </Text>
-                        <Text className='record-time'>{item.create_time}</Text>
-                      </View>
+                      <View className='record-time'>{item.create_time}</View>
                     </View>
                   </View>
 

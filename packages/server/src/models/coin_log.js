@@ -12,7 +12,6 @@ export async function insertCoinLog(dbh, data) {
       coin_num: 1,
       cost_amount: 0.00,
       pay_type: 1,
-      channel: 1,
       status: 1,
       ...data,
       create_time: ts,

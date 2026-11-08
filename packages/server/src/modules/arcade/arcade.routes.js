@@ -31,9 +31,8 @@ function nextMsgId() {
  * @param {object} trxUser 当前用户
  * @param {object} device 目标机台
  * @param {number} operatorId 操作者ID
- * @param {number} channel 1蓝牙BLE / 2远程MQTT
  */
-async function settleCoinInTrx(trx, trxUser, device, operatorId, channel = 2) {
+async function settleCoinInTrx(trx, trxUser, device, operatorId) {
   const days = daysFromExpire(trxUser.arcade_expire_date || trxUser.expire_date);
   const isFreePass = days > 0 && Boolean(device.can_use_days);
 
@@ -45,7 +44,6 @@ async function settleCoinInTrx(trx, trxUser, device, operatorId, channel = 2) {
       coin_num: device.coin || 1,
       cost_amount: 0.00,
       pay_type: 2, // 畅玩免扣
-      channel,
       status: 1,
     });
   } else {
@@ -63,7 +61,6 @@ async function settleCoinInTrx(trx, trxUser, device, operatorId, channel = 2) {
       coin_num: device.coin || 1,
       cost_amount: device.price,
       pay_type: 1, // 余额扣费
-      channel,
       status: 1,
     });
 
@@ -158,7 +155,7 @@ arcadeRouter.post('/coins/remote-insert', async (c) => {
       throw new AppError('投币失败');
     }
 
-    await settleCoinInTrx(trx, user, device, operatorId, 2 /* MQTT */);
+    await settleCoinInTrx(trx, user, device, operatorId);
 
     return c.json(ok('投币成功'));
   });
@@ -179,7 +176,7 @@ arcadeRouter.post('/coins/ble-consume', async (c) => {
     const device = await findDevice(trx, deviceId);
     if (!device) throw new AppError('设备不存在');
 
-    await settleCoinInTrx(trx, freshUser, device, user.id, 1 /* BLE */);
+    await settleCoinInTrx(trx, freshUser, device, user.id);
 
     return c.json(ok('投币已结算'));
   });
