@@ -1,0 +1,84 @@
+/* 全局引入 taro-ui 样式 */
+@import 'taro-ui/dist/style/index.scss';
+
+/* 全局公共变量与重置样式 */
+page {
+  background-color: #f5f7fb;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  color: #2d3436;
+  box-sizing: border-box;
+}
+
+/* 按钮点击触感反馈 */
+.btn-press-effect:active {
+  transform: scale(0.97);
+  opacity: 0.92;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+/* 投币按钮霓虹微光呼吸动效 */
+@keyframes neonGlow {
+  0% {
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+  }
+  50% {
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.7);
+  }
+  100% {
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+  }
+}
+
+/* 全局 AtModal 模态弹窗居中与排版美化 */
+.at-modal {
+  .at-modal__container {
+    border-radius: 28px;
+    overflow: hidden;
+  }
+
+  .at-modal__header {
+    font-size: 34px;
+    font-weight: 600;
+    color: #2d3436;
+    padding: 36px 32px 20px;
+    text-align: center;
+  }
+
+  .at-modal__content {
+    min-height: 140px;
+    padding: 24px 36px 32px;
+    text-align: center;
+    box-sizing: border-box;
+
+    .dialog-content-wrap,
+    .content-simple {
+      width: 100%;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 0 auto;
+
+      .dialog-content-text,
+      text {
+        font-size: 30px;
+        color: #4a4a5a;
+        line-height: 1.6;
+        text-align: center;
+        word-break: break-word;
+        display: block;
+        margin: 0 auto;
+      }
+    }
+  }
+
+  .at-modal__footer .at-modal__action > button {
+    height: 96px;
+    line-height: 96px;
+    font-size: 32px;
+    font-weight: 500;
+  }
+}

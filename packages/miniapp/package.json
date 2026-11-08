@@ -1,0 +1,61 @@
+{
+  "name": "mug-miniapp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "templateInfo": {
+    "name": "taro-ui",
+    "typescript": false,
+    "css": "Sass",
+    "framework": "React"
+  },
+  "scripts": {
+    "build:weapp": "taro build --type weapp",
+    "build:qq": "taro build --type qq",
+    "dev:weapp": "npm run build:weapp -- --watch",
+    "dev:qq": "npm run build:qq -- --watch",
+    "test": "jest"
+  },
+  "browserslist": [
+    "last 3 versions",
+    "Android >= 4.1",
+    "ios >= 8"
+  ],
+  "author": "",
+  "dependencies": {
+    "@babel/runtime": "^7.21.5",
+    "@tarojs/components": "4.3.2",
+    "@tarojs/helper": "4.3.2",
+    "@tarojs/plugin-framework-react": "4.3.2",
+    "@tarojs/plugin-platform-qq": "4.3.2",
+    "@tarojs/plugin-platform-weapp": "4.3.2",
+    "@tarojs/react": "4.3.2",
+    "@tarojs/runtime": "4.3.2",
+    "@tarojs/shared": "4.3.2",
+    "@tarojs/taro": "4.3.2",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "taro-ui": "^3.2.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.0",
+    "@tarojs/cli": "4.3.2",
+    "@tarojs/test-utils-react": "^0.1.1",
+    "@tarojs/vite-runner": "4.3.2",
+    "@types/react": "^18.0.0",
+    "@vitejs/plugin-react": "^4.1.0",
+    "babel-preset-taro": "4.3.2",
+    "eslint": "^8.12.0",
+    "eslint-config-taro": "4.3.2",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-react": "^7.8.2",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "postcss": "^8.4.18",
+    "react-refresh": "^0.11.0",
+    "sass": "1.63.2",
+    "stylelint": "^14.4.0",
+    "terser": "^5.16.8",
+    "vite": "^4.2.0"
+  }
+}

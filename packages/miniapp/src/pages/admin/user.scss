@@ -1,0 +1,104 @@
+.page-admin-user {
+  min-height: 100vh;
+  background-color: #f5f7fb;
+  padding: 24px;
+  box-sizing: border-box;
+
+  .tabs-wrap {
+    margin-bottom: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .form-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 10px 28px 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+
+    .form-item {
+      display: flex;
+      align-items: center;
+      padding: 24px 0;
+      border-bottom: 1px solid #f0f2f5;
+
+      &:last-of-type {
+        border-bottom: none;
+      }
+
+      &.form-item-textarea {
+        align-items: flex-start;
+
+        .form-label {
+          padding-top: 14px;
+        }
+
+        .textarea-content {
+          width: 100%;
+        }
+      }
+
+      .form-label {
+        width: 150px;
+        font-size: 28px;
+        font-weight: 500;
+        color: #606266;
+        flex-shrink: 0;
+        text-align: left;
+      }
+
+      .form-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+
+        &.form-content-switch {
+          justify-content: flex-end; // 开关靠右对齐（微信规范）
+        }
+
+        .form-text {
+          font-size: 28px;
+          color: #303133;
+
+          &.form-highlight {
+            font-size: 32px;
+            font-weight: 600;
+            color: #6190e8;
+          }
+        }
+
+        .form-input {
+          width: 100%;
+          font-size: 28px;
+          color: #303133;
+          height: 48px;
+          line-height: 48px;
+        }
+      }
+    }
+
+    .submit-btn-wrap {
+      margin-top: 40px;
+
+      .action-btn-item {
+        margin-top: 24px;
+      }
+    }
+  }
+
+  .recharge-input-wrap {
+    padding: 20px 0;
+
+    .modal-input {
+      background: #f5f7fa;
+      border-radius: 12px;
+      height: 80px;
+      line-height: 80px;
+      font-size: 32px;
+      text-align: center;
+      margin: 10px 0;
+    }
+  }
+}

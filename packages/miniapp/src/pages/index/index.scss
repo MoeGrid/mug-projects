@@ -1,0 +1,1284 @@
+.page-index {
+  min-height: calc(100vh + 2px);
+  background: #f4f6fa;
+  padding: 24px 28px 60px;
+  box-sizing: border-box;
+
+  /* 1. 玩家档案卡片 (User Gamer Card) */
+  .gamer-card {
+    position: relative;
+    background: linear-gradient(135deg, #1e1e30 0%, #2c2a4a 60%, #3a3866 100%);
+    border-radius: 28px;
+    padding: 32px 28px 24px;
+    color: #ffffff;
+    box-shadow: 0 16px 36px rgba(30, 30, 48, 0.25);
+    overflow: hidden;
+    margin-bottom: 24px;
+
+    /* 背景装饰光斑 */
+    &::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(108, 92, 231, 0.4) 0%, rgba(108, 92, 231, 0) 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .gamer-header {
+      display: flex;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+
+      .avatar-wrapper {
+        position: relative;
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        padding: 4px;
+        background: linear-gradient(135deg, #00d2d3, #6c5ce7);
+        box-shadow: 0 4px 16px rgba(108, 92, 231, 0.4);
+        flex-shrink: 0;
+
+        .avatar-img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          display: block;
+        }
+
+        .avatar-edit-badge {
+          position: absolute;
+          right: -2px;
+          bottom: -2px;
+          background: #6c5ce7;
+          border: 2px solid #1e1e30;
+          border-radius: 50%;
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+      }
+
+      .info-wrapper {
+        margin-left: 20px;
+        flex: 1;
+        min-width: 0;
+
+        .nickname-row {
+          display: flex;
+          align-items: center;
+
+          .nickname-text {
+            font-size: 34px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 300px;
+          }
+
+          .edit-pen {
+            margin-left: 10px;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.6);
+          }
+        }
+
+        .uid-tag {
+          display: inline-flex;
+          align-items: center;
+          margin-top: 8px;
+          padding: 4px 14px;
+          background: rgba(255, 255, 255, 0.12);
+          border-radius: 20px;
+          font-size: 20px;
+          color: rgba(255, 255, 255, 0.85);
+
+          .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00d2d3;
+            margin-right: 8px;
+          }
+        }
+      }
+
+      .admin-tag {
+        padding: 6px 18px;
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        border-radius: 20px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #ffffff;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
+      }
+    }
+
+    /* 资产状态行 */
+    .gamer-assets {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .asset-block {
+        display: flex;
+        flex-direction: column;
+
+        .asset-label {
+          font-size: 22px;
+          color: rgba(255, 255, 255, 0.65);
+          display: flex;
+          align-items: center;
+
+          .arrow {
+            margin-left: 4px;
+            font-size: 20px;
+          }
+        }
+
+        .asset-value-wrap {
+          display: flex;
+          align-items: baseline;
+          margin-top: 6px;
+
+          .symbol {
+            font-size: 26px;
+            font-weight: 600;
+            color: #00d2d3;
+            margin-right: 4px;
+          }
+
+          .value-num {
+            font-size: 44px;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'DIN Alternate', 'Trebuchet MS', sans-serif;
+            letter-spacing: 0.5px;
+          }
+
+          .unit {
+            font-size: 22px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-left: 6px;
+          }
+        }
+      }
+
+      .asset-divider {
+        width: 1px;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .recharge-btn-mini {
+        padding: 16px 36px;
+        background: linear-gradient(135deg, #ff6b81, #ff4757);
+        border-radius: 26px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #ffffff;
+        box-shadow: 0 4px 16px rgba(255, 71, 87, 0.4);
+        display: flex;
+        align-items: center;
+
+        .icon {
+          margin-right: 8px;
+          font-size: 26px;
+        }
+      }
+    }
+  }
+
+  /* 模式切换双核分段胶囊 */
+  .mode-switcher-container {
+    display: flex;
+    background: #e3e7f0;
+    border-radius: 22px;
+    padding: 6px;
+    margin-bottom: 28px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.06);
+
+    .mode-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 0;
+      border-radius: 18px;
+      font-size: 28px;
+      font-weight: 600;
+      color: #6c7293;
+      position: relative;
+      transition: all 0.25s ease;
+
+      .mode-icon {
+        font-size: 32px;
+        margin-right: 12px;
+      }
+
+      .mode-title {
+        letter-spacing: 0.5px;
+      }
+
+      .mode-badge {
+        margin-left: 10px;
+        background: linear-gradient(135deg, #ff4757, #ff6b81);
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 12px;
+        line-height: 1.2;
+      }
+
+      &.active {
+        background: #ffffff;
+        color: #1e1e30;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+        .active-pill {
+          position: absolute;
+          bottom: 6px;
+          width: 36px;
+          height: 4px;
+          background: #6c5ce7;
+          border-radius: 2px;
+        }
+      }
+    }
+  }
+
+  /* ================= 模式 A: 街机机台选择与投币 ================= */
+  .mug-arc-pass-card {
+    position: relative;
+    background: linear-gradient(135deg, #111424 0%, #1e1938 50%, #182638 100%);
+    border: 2px solid rgba(0, 210, 211, 0.45);
+    border-radius: 24px;
+    padding: 24px 26px;
+    margin-bottom: 24px;
+    box-shadow: 0 12px 30px rgba(17, 20, 36, 0.35);
+    overflow: hidden;
+
+    /* 全息流光扫光效果 */
+    .hologram-shimmer {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.08),
+        rgba(0, 210, 211, 0.25),
+        transparent
+      );
+      transform: skewX(-25deg);
+      animation: cardShimmer 4s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    /* 水印背景 */
+    .card-watermark {
+      position: absolute;
+      right: -10px;
+      bottom: -6px;
+      font-size: 70px;
+      font-weight: 900;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+      user-select: none;
+      letter-spacing: 2px;
+    }
+
+    .pass-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .pass-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .pass-brand {
+        display: flex;
+        align-items: center;
+
+        .brand-icon {
+          font-size: 32px;
+          margin-right: 10px;
+          color: #00d2d3;
+        }
+
+        .brand-title {
+          font-size: 28px;
+          font-weight: 800;
+          color: #ffffff;
+          letter-spacing: 1.5px;
+        }
+      }
+
+      .pass-status {
+        display: flex;
+        align-items: center;
+        background: rgba(0, 255, 136, 0.15);
+        border: 1px solid rgba(0, 255, 136, 0.4);
+        padding: 4px 14px;
+        border-radius: 16px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #00ff88;
+
+        .pulse-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #00ff88;
+          margin-right: 6px;
+          animation: dotPulse 2s infinite ease-in-out;
+        }
+      }
+    }
+
+    .pass-content {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .privilege-desc {
+        display: flex;
+        flex-direction: column;
+
+        .desc-main {
+          font-size: 30px;
+          font-weight: 700;
+          color: #ffffff;
+          letter-spacing: 0.5px;
+        }
+
+        .desc-sub {
+          font-size: 20px;
+          color: rgba(255, 255, 255, 0.65);
+          margin-top: 4px;
+        }
+      }
+
+      .days-wrap {
+        display: flex;
+        align-items: baseline;
+        background: rgba(0, 210, 211, 0.15);
+        border: 1px solid rgba(0, 210, 211, 0.4);
+        padding: 4px 14px;
+        border-radius: 14px;
+
+        .days-num {
+          font-size: 36px;
+          font-weight: 800;
+          color: #00d2d3;
+          font-family: 'DIN Alternate', sans-serif;
+        }
+
+        .days-unit {
+          font-size: 20px;
+          color: #a8fffd;
+          margin-left: 4px;
+        }
+      }
+    }
+  }
+
+  .cabinet-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 28px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    margin-bottom: 28px;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.02);
+
+    .card-top-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .cabinet-icon-row {
+        display: flex;
+        align-items: center;
+
+        .arcade-icon {
+          width: 36px;
+          height: 36px;
+          background: #f0edff;
+          color: #6c5ce7;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          margin-right: 12px;
+        }
+
+        .title-text {
+          font-size: 24px;
+          color: #8c8d99;
+          font-weight: 500;
+        }
+      }
+
+      .switch-pill {
+        padding: 6px 18px;
+        background: #f4f4f8;
+        border-radius: 16px;
+        font-size: 22px;
+        color: #6c5ce7;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .cabinet-body {
+      margin-top: 16px;
+
+      .group-name {
+        font-size: 24px;
+        color: #6c5ce7;
+        font-weight: 600;
+      }
+
+      .machine-name-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-top: 8px;
+
+        .machine-name {
+          font-size: 40px;
+          font-weight: 800;
+          color: #2d3436;
+          letter-spacing: 0.5px;
+        }
+
+        .price-badge {
+          display: flex;
+          align-items: baseline;
+          padding: 8px 18px;
+          background: #f9f9fc;
+          border-radius: 14px;
+          border: 1px solid #eef0f6;
+
+          .price-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2d3436;
+            font-family: 'DIN Alternate', sans-serif;
+          }
+
+          .price-unit {
+            font-size: 22px;
+            color: #8c8d99;
+            margin-left: 4px;
+          }
+        }
+      }
+    }
+  }
+
+  .insert-console {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 36px 0;
+
+    .insert-button {
+      position: relative;
+      width: 100%;
+      height: 124px;
+      border-radius: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #6c5ce7 0%, #8553f4 100%);
+      color: #ffffff;
+      box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+      transition: all 0.2s ease;
+
+      &.can-insert {
+        animation: neonGlow 3s infinite ease-in-out;
+      }
+
+      &.disabled {
+        background: #dcdde1;
+        box-shadow: none;
+        color: #95a5a6;
+      }
+
+      .insert-main-text {
+        font-size: 38px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+
+        .coin-icon {
+          margin-right: 12px;
+          font-size: 40px;
+        }
+      }
+
+      .insert-sub-text {
+        font-size: 22px;
+        opacity: 0.85;
+        margin-top: 4px;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  /* ================= 模式 B: 卡牌通行证与门票专区 ================= */
+  .card-mode-section {
+    margin-bottom: 28px;
+
+    /* A. 全息动态电子通行证凭证卡 */
+    .pass-hologram-card {
+      position: relative;
+      border-radius: 28px;
+      padding: 32px 28px 24px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      transition: all 0.3s ease;
+
+      &.card-active {
+        background: linear-gradient(135deg, #13141f 0%, #221a36 45%, #182838 100%);
+        border: 2px solid rgba(108, 92, 231, 0.55);
+        box-shadow: 0 16px 36px rgba(34, 26, 54, 0.35);
+        color: #ffffff;
+      }
+
+      &.card-inactive {
+        background: linear-gradient(135deg, #232530 0%, #303444 100%);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+        color: #ffffff;
+      }
+
+      /* 水印装饰 */
+      .card-watermark {
+        position: absolute;
+        right: -10px;
+        bottom: 8px;
+        font-size: 80px;
+        font-weight: 900;
+        font-style: italic;
+        color: rgba(255, 255, 255, 0.04);
+        pointer-events: none;
+        user-select: none;
+        letter-spacing: 2px;
+      }
+
+      /* 全息扫光效果 */
+      .hologram-shimmer {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.08),
+          rgba(0, 210, 211, 0.15),
+          transparent
+        );
+        transform: skewX(-25deg);
+        animation: cardShimmer 4.5s infinite ease-in-out;
+        pointer-events: none;
+      }
+
+      .pass-inner.active {
+        position: relative;
+        z-index: 1;
+
+        .pass-card-brand-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          .brand-left {
+            display: flex;
+            align-items: center;
+
+            .brand-icon {
+              font-size: 40px;
+              margin-right: 14px;
+            }
+
+            .brand-text-col {
+              display: flex;
+              flex-direction: column;
+
+              .brand-title {
+                font-size: 28px;
+                font-weight: 800;
+                color: #ffffff;
+                letter-spacing: 1.5px;
+              }
+
+              .brand-sub {
+                font-size: 20px;
+                color: rgba(255, 255, 255, 0.6);
+                margin-top: 2px;
+              }
+            }
+          }
+
+          .pass-status-pill {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.45);
+            padding: 6px 18px;
+            border-radius: 20px;
+            color: #00ff88;
+            font-size: 22px;
+            font-weight: 700;
+
+            .pulse-dot {
+              width: 12px;
+              height: 12px;
+              border-radius: 50%;
+              background: #00ff88;
+              margin-right: 8px;
+              animation: dotPulse 2s infinite ease-in-out;
+            }
+          }
+        }
+
+        .pass-main-grade {
+          margin: 28px 0 24px;
+          padding: 24px;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+
+          .grade-info {
+            display: flex;
+            flex-direction: column;
+
+            .tier-title {
+              font-size: 38px;
+              font-weight: 800;
+              letter-spacing: 1px;
+              background: linear-gradient(135deg, #ffd700, #ff9f43);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+            }
+
+            .tier-privilege {
+              font-size: 20px;
+              color: rgba(255, 255, 255, 0.7);
+              margin-top: 6px;
+            }
+          }
+
+          .days-counter {
+            display: flex;
+            align-items: baseline;
+            background: rgba(255, 215, 0, 0.15);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            padding: 6px 16px;
+            border-radius: 16px;
+
+            .days-num {
+              font-size: 36px;
+              font-weight: 800;
+              color: #ffd700;
+              font-family: 'DIN Alternate', sans-serif;
+            }
+
+            .days-unit {
+              font-size: 20px;
+              color: #ffeaa7;
+              margin-left: 4px;
+            }
+          }
+        }
+
+        .pass-card-footer {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          padding: 6px 4px 0;
+
+          .meta-item {
+            display: flex;
+            flex-direction: column;
+
+            .meta-label {
+              font-size: 18px;
+              color: rgba(255, 255, 255, 0.5);
+              letter-spacing: 0.5px;
+            }
+
+            .meta-val {
+              font-size: 24px;
+              font-weight: 600;
+              color: rgba(255, 255, 255, 0.9);
+              font-family: monospace, sans-serif;
+              margin-top: 4px;
+              letter-spacing: 1px;
+            }
+
+            &.text-right {
+              align-items: flex-end;
+            }
+          }
+        }
+      }
+
+      .pass-inner.inactive {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 24px 10px;
+
+        .inactive-badge {
+          display: inline-block;
+          font-size: 24px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.6);
+          background: rgba(255, 255, 255, 0.08);
+          padding: 6px 20px;
+          border-radius: 20px;
+          margin-bottom: 16px;
+        }
+
+        .inactive-title {
+          font-size: 34px;
+          font-weight: 800;
+          color: #ffffff;
+          display: block;
+        }
+
+        .inactive-desc {
+          font-size: 22px;
+          color: rgba(255, 255, 255, 0.65);
+          line-height: 1.5;
+          margin: 12px auto 22px;
+          display: block;
+          max-width: 90%;
+        }
+
+        .inactive-buy-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #ffd700, #ff9f43);
+          color: #1e1e30;
+          font-size: 26px;
+          font-weight: 700;
+          padding: 14px 44px;
+          border-radius: 24px;
+          box-shadow: 0 6px 18px rgba(255, 159, 67, 0.4);
+        }
+      }
+
+      /* 底部体验切换控制条 */
+      .card-footer-controls {
+        position: relative;
+        z-index: 1;
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+
+        .demo-toggle-btn {
+          display: inline-flex;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          padding: 6px 16px;
+          border-radius: 14px;
+          font-size: 20px;
+          color: rgba(255, 255, 255, 0.7);
+
+          .toggle-icon {
+            margin-right: 6px;
+            font-size: 20px;
+          }
+        }
+      }
+    }
+
+    /* B. 通行证套餐办理专区 */
+    .pass-plans-section {
+      margin-bottom: 32px;
+
+      .section-header {
+        margin-bottom: 20px;
+
+        .section-title {
+          font-size: 32px;
+          font-weight: 800;
+          color: #1e1e30;
+          display: block;
+        }
+
+        .section-subtitle {
+          font-size: 22px;
+          color: #8c8d99;
+          margin-top: 4px;
+          display: block;
+        }
+      }
+
+      .plans-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+
+        .plan-card {
+          position: relative;
+          background: #ffffff;
+          border-radius: 24px;
+          padding: 28px 22px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0, 0, 0, 0.03);
+          box-sizing: border-box;
+
+          &.plan-featured {
+            border: 2px solid rgba(108, 92, 231, 0.4);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15);
+            background: linear-gradient(180deg, #ffffff 0%, #fbfaff 100%);
+          }
+
+          .plan-tag {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-top-right-radius: 22px;
+            border-bottom-left-radius: 14px;
+          }
+
+          .plan-card-header {
+            margin-top: 4px;
+
+            .plan-name {
+              font-size: 30px;
+              font-weight: 800;
+              color: #1e1e30;
+              display: block;
+            }
+
+            .plan-subtitle {
+              font-size: 18px;
+              color: #a4b0be;
+              margin-top: 4px;
+              display: block;
+              min-height: 48px;
+            }
+          }
+
+          .plan-price-wrap {
+            display: flex;
+            align-items: baseline;
+            margin: 14px 0 16px;
+
+            .currency {
+              font-size: 24px;
+              font-weight: 700;
+              color: #6c5ce7;
+            }
+
+            .price-val {
+              font-size: 46px;
+              font-weight: 900;
+              color: #6c5ce7;
+              font-family: 'DIN Alternate', sans-serif;
+              margin-left: 2px;
+            }
+
+            .price-period {
+              font-size: 20px;
+              color: #8c8d99;
+              margin-left: 4px;
+            }
+          }
+
+          .plan-benefits-list {
+            flex: 1;
+            margin-bottom: 20px;
+
+            .benefit-item {
+              display: flex;
+              align-items: flex-start;
+              margin-bottom: 10px;
+
+              .check {
+                color: #2ed573;
+                font-weight: 900;
+                font-size: 20px;
+                margin-right: 8px;
+                line-height: 1.4;
+              }
+
+              .benefit-desc {
+                font-size: 20px;
+                color: #57606f;
+                line-height: 1.4;
+              }
+            }
+          }
+
+          .plan-action-btn {
+            width: 100%;
+            height: 72px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+
+            &.btn-primary {
+              background: linear-gradient(135deg, #6c5ce7 0%, #8553f4 100%);
+              color: #ffffff;
+              box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35);
+            }
+
+            &.btn-secondary {
+              background: #f0edff;
+              color: #6c5ce7;
+            }
+          }
+        }
+      }
+    }
+
+    /* C. 卡牌专区到店须知卡片 */
+    .card-rules-card {
+      margin-top: 10px;
+    }
+  }
+
+  /* 通用到店须知卡片（音游/卡牌复用） */
+  .rules-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    margin-bottom: 28px;
+
+    .rules-title {
+      display: flex;
+      align-items: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e1e30;
+      margin-bottom: 18px;
+
+      .icon {
+        margin-right: 10px;
+        font-size: 30px;
+      }
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 14px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .rule-badge {
+        background: #f1f2f6;
+        color: #57606f;
+        font-size: 18px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 8px;
+        margin-right: 12px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .rule-text {
+        font-size: 22px;
+        color: #747d8c;
+        line-height: 1.5;
+        flex: 1;
+      }
+    }
+  }
+
+  /* 底部版本号 */
+  .version-tag {
+    text-align: center;
+    color: #b2bec3;
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-top: 20px;
+  }
+}
+
+/* 完善资料弹窗美化 */
+.profile-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+
+  .avatar-upload-btn {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    padding: 0;
+    margin: 10px 0 20px;
+    background: transparent;
+    border: none;
+    line-height: normal;
+
+    &::after {
+      border: none;
+    }
+
+    .modal-avatar-img {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 4px solid #f0edff;
+      display: block;
+    }
+
+    .upload-tip {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-size: 18px;
+      text-align: center;
+      padding: 4px 0;
+      border-bottom-left-radius: 70px;
+      border-bottom-right-radius: 70px;
+    }
+  }
+
+  .nickname-box {
+    width: 100%;
+    margin-top: 16px;
+    padding: 20px 24px;
+    background: #f5f7fb;
+    border-radius: 16px;
+    box-sizing: border-box;
+
+    .nickname-input {
+      font-size: 30px;
+      color: #2d3436;
+      text-align: center;
+      height: 48px;
+    }
+  }
+}
+
+/* 办理通行证确认弹窗内容 */
+.buy-pass-modal-content {
+  padding: 16px 8px;
+
+  .modal-plan-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f2f6;
+
+    .plan-title-large {
+      font-size: 34px;
+      font-weight: 800;
+      color: #1e1e30;
+    }
+
+    .price-highlight {
+      display: flex;
+      align-items: baseline;
+
+      .symbol {
+        font-size: 24px;
+        font-weight: 700;
+        color: #6c5ce7;
+      }
+
+      .amount {
+        font-size: 44px;
+        font-weight: 900;
+        color: #6c5ce7;
+        font-family: 'DIN Alternate', sans-serif;
+        margin-left: 2px;
+      }
+
+      .unit {
+        font-size: 20px;
+        color: #8c8d99;
+        margin-left: 4px;
+      }
+    }
+  }
+
+  .modal-balance-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    font-size: 26px;
+
+    .label {
+      color: #57606f;
+    }
+
+    .val {
+      font-weight: 700;
+      color: #2ed573;
+    }
+  }
+
+  .modal-privileges-box {
+    background: #f8f9fd;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+
+    .box-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d3436;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .privilege-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .check-icon {
+        color: #6c5ce7;
+        font-weight: 800;
+        font-size: 20px;
+        margin-right: 10px;
+      }
+
+      .privilege-text {
+        font-size: 22px;
+        color: #57606f;
+      }
+    }
+  }
+
+  .modal-tip-text {
+    font-size: 20px;
+    color: #a4b0be;
+    line-height: 1.5;
+    display: block;
+  }
+}
+
+/* 通用提示弹窗内容美化 */
+.dialog-content-wrap {
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin: 0 auto;
+  box-sizing: border-box;
+
+  .dialog-content-text {
+    font-size: 30px;
+    color: #4a4a5a;
+    line-height: 1.6;
+    text-align: center;
+    word-break: break-word;
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+/* 动效关键帧 */
+@keyframes neonGlow {
+  0% {
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+  }
+  50% {
+    box-shadow: 0 16px 44px rgba(108, 92, 231, 0.7);
+  }
+  100% {
+    box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+  }
+}
+
+@keyframes cardShimmer {
+  0% {
+    left: -100%;
+  }
+  35% {
+    left: 160%;
+  }
+  100% {
+    left: 160%;
+  }
+}
+
+@keyframes dotPulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+    box-shadow: 0 0 10px #00ff88;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}
