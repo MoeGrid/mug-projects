@@ -50,9 +50,11 @@ walletRouter.post('/wechat-pay/notify', async (c) => {
             await trx.updateTable('mug_user').set({ balance, update_time: tsNow() }).where('id', '=', user.id).execute();
             await insertBalanceLog(trx, {
               user_id: user.id,
-              balance,
-              num: toMoney(order.num),
-              type: 3,
+              change_amount: toMoney(order.num),
+              balance_after: balance,
+              biz_type: 2, // 微信充值
+              remark: '微信支付充值',
+              related_id: order.we_order_id,
             });
           });
         }
@@ -177,7 +179,7 @@ walletRouter.post('/orders/package', async (c) => {
 
 /**
  * GET /api/v1/wallet/transactions
- * 分页查询资产明细流水
+ * 分页查询资产明细流水（纯财务资金流动）
  */
 walletRouter.get('/transactions', async (c) => {
   const rows = Math.max(parseInt(c.req.query('rows') || '20', 10), 1);
@@ -185,9 +187,7 @@ walletRouter.get('/transactions', async (c) => {
   const user = currentUser(c);
 
   const buildQuery = () =>
-    db
-      .selectFrom('mug_balance_log')
-      .where('user_id', '=', user.id);
+    db.selectFrom('mug_balance_log').where('user_id', '=', user.id);
 
   const totalRow = await buildQuery().select(({ fn }) => fn.countAll().as('cnt')).executeTakeFirst();
   const total = Number(totalRow?.cnt ?? 0);
@@ -199,15 +199,26 @@ walletRouter.get('/transactions', async (c) => {
     .offset((page - 1) * rows)
     .execute();
 
-  const data = await Promise.all(logs.map(attachDeviceAndGroup));
-
   return c.json(
     ok({
       total,
       per_page: rows,
       current_page: page,
       last_page: Math.max(Math.ceil(total / rows), 1),
-      data,
+      data: logs.map((item) => ({
+        id: item.id,
+        user_id: item.user_id,
+        change_amount: toMoney(item.change_amount ?? item.num),
+        balance_after: toMoney(item.balance_after ?? item.balance),
+        biz_type: item.biz_type ?? item.type,
+        remark: item.remark || (item.type === 3 ? '微信充值' : item.type === 1 ? '投币消费' : '系统调配'),
+        related_id: item.related_id,
+        create_time: item.create_time,
+        // 兼容原字段属性
+        num: toMoney(item.change_amount ?? item.num),
+        balance: toMoney(item.balance_after ?? item.balance),
+        type: item.biz_type ?? item.type,
+      })),
     })
   );
 });

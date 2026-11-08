@@ -29,3 +29,13 @@ export function bleConsumeCoin(deviceId) {
 }
 
 export const useBalance = (id) => bleConsumeCoin(id)
+
+/**
+ * 分页获取街机投币记录（支持畅玩免扣与余额投币）
+ * @param {{ page?: number, rows?: number }} params
+ */
+export function getCoinLogs(params) {
+  return get('/api/v1/arcade/coins/logs', params)
+}
+
+export const coinLogList = getCoinLogs

@@ -136,9 +136,10 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
       await trx.updateTable('mug_user').set({ balance, update_time: tsNow() }).where('id', '=', user.id).execute();
       await insertBalanceLog(trx, {
         user_id: user.id,
-        balance,
-        num: toMoney(num),
-        type: 4,
+        change_amount: toMoney(num),
+        balance_after: balance,
+        biz_type: 4,
+        remark: num >= 0 ? `管理员补款 +¥${toMoney(num)}` : `管理员扣款 -¥${toMoney(Math.abs(num))}`,
       });
     } else if (type === 2) {
       // 调配音游畅玩天数：按早 6 点结算与累加

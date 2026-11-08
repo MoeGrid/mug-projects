@@ -1,18 +1,52 @@
 .page-record {
   min-height: 100vh;
   background: #f4f6fa;
-  padding: 24px 28px 60px;
+  padding: 20px 24px 60px;
   box-sizing: border-box;
+
+  /* 顶部切换 Tabs */
+  .record-tabs-nav {
+    display: flex;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+
+    .tab-item {
+      flex: 1;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      font-size: 28px;
+      font-weight: 600;
+      color: #718096;
+      transition: all 0.2s ease;
+
+      .tab-icon {
+        margin-right: 10px;
+        font-size: 30px;
+      }
+
+      &.active {
+        background: linear-gradient(135deg, #6c5ce7 0%, #8553f4 100%);
+        color: #ffffff;
+        box-shadow: 0 6px 18px rgba(108, 92, 231, 0.35);
+      }
+    }
+  }
 
   .record-cards-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 18px;
 
     .record-card-item {
       background: #ffffff;
       border-radius: 24px;
-      padding: 26px 24px;
+      padding: 24px 22px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -36,6 +70,16 @@
           margin-right: 20px;
           flex-shrink: 0;
 
+          &.coin-free-icon {
+            background: #e6f7ff;
+            color: #0984e3;
+          }
+
+          &.coin-balance-icon {
+            background: #f0edff;
+            color: #6c5ce7;
+          }
+
           &.type-coin {
             background: #f0edff;
             color: #6c5ce7;
@@ -46,14 +90,19 @@
             color: #07c160;
           }
 
-          &.type-day {
-            background: #e6f7ff;
-            color: #1890ff;
+          &.type-pass {
+            background: #fff0f6;
+            color: #eb2f96;
           }
 
           &.type-admin {
             background: #fef4e8;
             color: #fa8c16;
+          }
+
+          &.type-paseli {
+            background: #fff7e6;
+            color: #fa541c;
           }
 
           &.type-default {
@@ -71,26 +120,34 @@
             align-items: center;
 
             .record-title {
-              font-size: 30px;
+              font-size: 28px;
               font-weight: 700;
               color: #2d3436;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
           }
 
-          .machine-info {
-            font-size: 24px;
-            color: #6c5ce7;
-            font-weight: 500;
+          .sub-info-row {
+            display: flex;
+            align-items: center;
             margin-top: 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+
+            .channel-tag {
+              font-size: 20px;
+              padding: 2px 10px;
+              border-radius: 8px;
+              background: #f1f2f6;
+              color: #747d8c;
+              margin-right: 12px;
+            }
           }
 
           .record-time {
             font-size: 22px;
             color: #a4b0be;
-            margin-top: 6px;
+            margin-top: 4px;
           }
         }
       }
@@ -102,8 +159,34 @@
         margin-left: 20px;
         flex-shrink: 0;
 
+        .badge-pill {
+          padding: 6px 16px;
+          border-radius: 14px;
+          font-size: 22px;
+          font-weight: 700;
+
+          &.free-pill {
+            background: rgba(9, 132, 227, 0.12);
+            color: #0984e3;
+            border: 1px solid rgba(9, 132, 227, 0.25);
+          }
+        }
+
+        .cost-num {
+          font-size: 34px;
+          font-weight: 800;
+          color: #6c5ce7;
+          font-family: 'DIN Alternate', sans-serif;
+        }
+
+        .coin-count-label {
+          font-size: 22px;
+          color: #718096;
+          margin-top: 6px;
+        }
+
         .num-change {
-          font-size: 36px;
+          font-size: 34px;
           font-weight: 800;
           font-family: 'DIN Alternate', sans-serif;
 
@@ -112,11 +195,7 @@
           }
 
           &.negative {
-            color: #6c5ce7;
-          }
-
-          &.neutral {
-            color: #8c8d99;
+            color: #2d3436;
           }
         }
 
@@ -134,7 +213,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 160px 0;
+    padding: 140px 0;
 
     .empty-icon {
       font-size: 80px;

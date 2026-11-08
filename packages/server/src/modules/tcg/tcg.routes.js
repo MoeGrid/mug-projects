@@ -78,12 +78,14 @@ tcgRouter.post('/passes/recharge', async (c) => {
       tcg_expire_date: newExpire,
     });
 
-    // 2. 写入账单流水（类型 6 代表 TCG 门票/通行证办理）
+    // 2. 写入纯资金流水（业务类型 3: 卡牌通行证）
     await insertBalanceLog(trx, {
       user_id: user.id,
-      num: -plan.price,
-      balance: newBalance,
-      type: 4, // 对应余额扣减
+      change_amount: -toMoney(plan.price),
+      balance_after: newBalance,
+      biz_type: 3, // 卡牌通行证
+      remark: `${plan.name}充值办理`,
+      related_id: plan.id,
     });
 
     const remainingDays = daysFromTcgExpire(newExpire);
