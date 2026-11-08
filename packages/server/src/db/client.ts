@@ -14,6 +14,7 @@ export const db = new Kysely<Database>({
       database: config.db.database,
       charset: config.db.charset,
       connectionLimit: 10,
+      dateStrings: true,
     }),
   }),
 });
