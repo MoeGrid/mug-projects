@@ -4,12 +4,13 @@
   "private": true,
   "description": "MUG Arcade & Card Pass Monorepo (Miniapp + Server)",
   "scripts": {
-    "dev:miniapp": "pnpm --filter mug-miniapp dev:weapp",
     "dev:app": "pnpm --filter mug-miniapp dev:weapp",
     "dev:server": "pnpm --filter mug-server dev",
-    "build:miniapp": "pnpm --filter mug-miniapp build:weapp",
     "build:app": "pnpm --filter mug-miniapp build:weapp",
-    "build:server": "pnpm --filter mug-server build"
+    "build:server": "pnpm --filter mug-server build",
+    "start": "pnpm --filter mug-server build && pnpm --filter mug-server start",
+    "start:server": "pnpm --filter mug-server build && pnpm --filter mug-server start",
+    "serve:server": "pnpm --filter mug-server start"
   },
   "keywords": [
     "taro",

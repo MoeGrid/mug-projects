@@ -35,6 +35,18 @@ pnpm install
   pnpm dev:server
   ```
 
+### 生产运行（线上版）
+- 一键构建并启动后端生产服务：
+  ```bash
+  pnpm start
+  # 或
+  pnpm start:server
+  ```
+- 跳过构建直接运行（已有 dist）：
+  ```bash
+  pnpm serve:server
+  ```
+
 ### 生产打包构建
 - 构建小程序：
   ```bash
