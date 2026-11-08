@@ -13,7 +13,7 @@ import type {Env} from '../app.js';
 
 export const adminUserRouter = new Hono<Env>();
 
-adminUserRouter.use('*', adminAuth);
+adminUserRouter.use('/admin/*', adminAuth);
 
 // POST /admin/user/info 用户信息
 adminUserRouter.post('/admin/user/info', async (c) => {

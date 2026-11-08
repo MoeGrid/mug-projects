@@ -56,9 +56,9 @@ userRouter.post('/user/login', async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// 以下全部需要 UserAuth
+// 以下全部需要 UserAuth（仅限 /user/* 路径，避免误伤静态资源与其他路由）
 // ---------------------------------------------------------------------------
-userRouter.use('*', userAuth);
+userRouter.use('/user/*', userAuth);
 
 const currentUser = (c: { get: (k: 'user') => UserRow }): UserRow => c.get('user');
 

@@ -7,6 +7,7 @@ import type {UserRow} from './models/user.js';
 import {webRouter} from './routes/web.js';
 import {userRouter} from './routes/user.js';
 import {adminUserRouter} from './routes/admin.js';
+import {serveStatic} from '@hono/node-server/serve-static';
 
 // 上下文环境变量（userAuth/adminAuth 注入当前用户）
 export type Env = { Variables: { user: UserRow } };
@@ -27,6 +28,15 @@ app.onError((err, c) => {
   console.error(err);
   return c.json({code: 0, msg: config.app.debug ? err.message : '页面错误！请稍后再试～'}, 500);
 });
+
+// 仅静态开放 /storage/* 路由，严格映射到环境变量配置的 STORAGE_ROOT 目录（不开放 public 全局）
+app.use(
+  '/storage/*',
+  serveStatic({
+    root: config.fs.publicRoot,
+    rewriteRequestPath: (p) => p.replace(/^\/storage/, ''),
+  })
+);
 
 // 路由装载（顺序对齐老项目：web → app(用户端) → admin）
 app.route('/', webRouter);
