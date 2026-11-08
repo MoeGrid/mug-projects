@@ -34,7 +34,8 @@ authRouter.post('/wechat-login', async (c) => {
       is_admin: 0,
       is_ban: 0,
       balance: 0,
-      expire_date: '1970-01-01',
+      arcade_expire_date: null,
+      tcg_expire_date: null,
     });
     user = await findUser(db, id);
   } else {

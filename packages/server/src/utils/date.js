@@ -30,24 +30,12 @@ export function parseDate(dateInput) {
 }
 
 /**
- * 剩余天数计算（音游原逻辑，以自然日整点换算）
- * @param {string | Date | null | undefined} expireDate
- */
-export function daysFromExpire(expireDate) {
-  if (!expireDate) return 0;
-  const expire = parseDate(expireDate);
-  if (Number.isNaN(expire)) return 0;
-  const today = parseDate(dateStr());
-  return Math.max(Math.floor((expire - today) / 86400000) + 1, 0);
-}
-
-/**
- * 腾讯游戏活动式清晨 06:00:00 结算与天数累加算法
+ * 清晨 06:00:00 结算与天数累加算法（音游与TCG共用）
  * @param {string | Date | null | undefined} currentExpireDate 当前已有到期时间
- * @param {number} addDays 充值天数（天卡 1 天，月卡 30 天）
+ * @param {number} addDays 充值天数（如天卡 1 天，月卡 30 天）
  * @returns {string} 统一早 6:00:00 到期的标准北京时间字符串
  */
-export function calculateTcgExpire(currentExpireDate, addDays) {
+export function calculateExpire(currentExpireDate, addDays) {
   const currentTs = dayjs().tz(TZ);
   let base;
   if (currentExpireDate) {
@@ -68,11 +56,11 @@ export function calculateTcgExpire(currentExpireDate, addDays) {
 }
 
 /**
- * 计算距离早 06:00:00 到期的剩余天数
+ * 计算距离早 06:00:00 到期的剩余天数（音游与TCG共用）
  * @param {string | Date | null | undefined} expireDate
  * @returns {number} 剩余天数（当天有效未过6点至少为1天）
  */
-export function daysFromTcgExpire(expireDate) {
+export function daysFromExpire(expireDate) {
   if (!expireDate) return 0;
   const expire = dayjs.tz(expireDate, TZ);
   const nowTs = dayjs().tz(TZ);
@@ -80,6 +68,10 @@ export function daysFromTcgExpire(expireDate) {
   const diffMs = expire.diff(nowTs, 'millisecond');
   return Math.max(Math.ceil(diffMs / 86400000), 0);
 }
+
+// 别名兼容
+export const calculateTcgExpire = calculateExpire;
+export const daysFromTcgExpire = daysFromExpire;
 
 /** 当前北京时间加减天数 */
 export function dateOffsetDays(days) {

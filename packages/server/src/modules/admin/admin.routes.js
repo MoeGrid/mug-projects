@@ -5,7 +5,7 @@ import { db } from '../../db/client.js';
 import { adminAuth } from '../../utils/middleware.js';
 import { body, zFlag, zInt, zNum } from '../../utils/validator.js';
 import { AppError, ok } from '../../utils/responses.js';
-import { dateOffsetDays, tsNow } from '../../utils/date.js';
+import { calculateExpire, dateOffsetDays, tsNow } from '../../utils/date.js';
 import { addMoney, toMoney } from '../../utils/money.js';
 import { insertBalanceLog } from '../../models/balance_log.js';
 import { findUser, updateUser, withDays } from '../../models/user.js';
@@ -141,9 +141,17 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         type: 4,
       });
     } else if (type === 2) {
-      const expireDate = dateOffsetDays(num - 1);
+      // 调配音游畅玩天数：按早 6 点结算与累加
+      const newExpire = calculateExpire(user.arcade_expire_date, num);
       await trx.updateTable('mug_user').set({
-        expire_date: expireDate,
+        arcade_expire_date: newExpire,
+        update_time: tsNow(),
+      }).where('id', '=', user.id).execute();
+    } else if (type === 3) {
+      // 调配卡牌 TCG 通行证天数：按早 6 点结算与累加
+      const newExpire = calculateExpire(user.tcg_expire_date, num);
+      await trx.updateTable('mug_user').set({
+        tcg_expire_date: newExpire,
         update_time: tsNow(),
       }).where('id', '=', user.id).execute();
     }
