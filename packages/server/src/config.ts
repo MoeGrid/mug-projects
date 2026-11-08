@@ -52,8 +52,8 @@ export const config = {
     payV3Key: str('WECHAT_PAY_V3KEY'),
     payMchCertSerial: str('WECHAT_PAY_MCH_CERT_SERIAL'), // 商户API证书序列号
     payMchKey: str('WECHAT_PAY_MCH_KEY', 'data/pay/mch_key.pem'),
-    payPlatformCertSerial: str('WECHAT_PAY_PLATFORM_CERT_SERIAL'), // 微信支付公钥ID(PUB_KEY_ID_xxx)
-    payPlatformKey: str('WECHAT_PAY_PLATFORM_KEY', 'data/pay/pub_key.pem'), // 微信支付公钥PEM
+    payPubKeyId: str('WECHAT_PAY_PUB_KEY_ID') || str('WECHAT_PAY_PLATFORM_CERT_SERIAL'), // 微信支付公钥ID(PUB_KEY_ID_xxx)
+    payPubKeyPath: str('WECHAT_PAY_PUB_KEY_PATH') || str('WECHAT_PAY_PLATFORM_KEY', 'data/pay/pub_key.pem'), // 微信支付公钥PEM
   },
 
   // MQTT broker（投币指令直连发布 / 订阅回执，取代原 EMQX HTTP API）

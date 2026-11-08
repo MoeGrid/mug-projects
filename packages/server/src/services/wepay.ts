@@ -28,13 +28,13 @@ function merchantKeyPem(): string {
 }
 
 // 微信支付公钥（PEM 文本）
-function platformKeyPem(): string {
-  return loadKey(config.wechat.payPlatformKey);
+function pubKeyPem(): string {
+  return loadKey(config.wechat.payPubKeyPath);
 }
 
 let _wxpay: Wechatpay | null = null;
 let _merchantKeyObj: KeyObject | null = null;
-let _platformKeyObj: KeyObject | null = null;
+let _pubKeyObj: KeyObject | null = null;
 
 /** APIv3 客户端单例：上行自动签名，下行自动验签 */
 function wxpay(): Wechatpay {
@@ -43,7 +43,7 @@ function wxpay(): Wechatpay {
     serial: config.wechat.payMchCertSerial, // 商户 API 证书序列号
     privateKey: merchantKeyPem(),
     // 「微信支付公钥」模式：key 为公钥 ID(PUB_KEY_ID_xxx)，value 为公钥
-    certs: {[config.wechat.payPlatformCertSerial]: platformKeyObj()},
+    certs: {[config.wechat.payPubKeyId]: pubKeyObj()},
   }));
 }
 
@@ -53,8 +53,8 @@ function merchantKeyObj(): KeyObject {
 }
 
 /** 微信支付公钥 KeyObject（用于回调验签） */
-function platformKeyObj(): KeyObject {
-  return (_platformKeyObj ??= Rsa.from(platformKeyPem(), Rsa.KEY_TYPE_PUBLIC));
+function pubKeyObj(): KeyObject {
+  return (_pubKeyObj ??= Rsa.from(pubKeyPem(), Rsa.KEY_TYPE_PUBLIC));
 }
 
 /** 统一把 axios 错误转成 AppError */
@@ -122,11 +122,11 @@ export function verifyCallback(headers: Record<string, string>, body: string): v
   const timestamp = headers['wechatpay-timestamp'] ?? '';
   const nonceStr = headers['wechatpay-nonce'] ?? '';
   // 检查微信支付公钥 ID（公钥模式下 Wechatpay-Serial 返回 PUB_KEY_ID_xxx）
-  if (serial !== config.wechat.payPlatformCertSerial) throw new AppError('微信支付公钥ID不匹配');
+  if (serial !== config.wechat.payPubKeyId) throw new AppError('微信支付公钥ID不匹配');
   // 通知时间偏移 5 分钟内
   if (Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp)) > 300) throw new AppError('请求超时');
   // 验签：timestamp\nnonce\nbody\n
-  if (!Rsa.verify(Formatter.response(timestamp, nonceStr, body), signature, platformKeyObj())) {
+  if (!Rsa.verify(Formatter.response(timestamp, nonceStr, body), signature, pubKeyObj())) {
     throw new AppError('签名验证失败');
   }
 }
