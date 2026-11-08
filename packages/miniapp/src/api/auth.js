@@ -7,5 +7,3 @@ import { post } from './client'
 export function wechatLogin(code) {
   return post('/api/v1/auth/wechat-login', { code })
 }
-
-export const login = wechatLogin

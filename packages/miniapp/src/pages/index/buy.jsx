@@ -3,7 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Input } from '@tarojs/components'
 import { AtToast } from 'taro-ui'
 
-import { eventList, buyRecharge, buyEvent } from '@/api'
+import { getRechargePackages, createRechargeOrder, createPackageOrder } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 
@@ -32,7 +32,7 @@ export default function BuyPage() {
       await authStore.login()
       try {
         showLoading('加载优惠活动...')
-        const list = await eventList()
+        const list = await getRechargePackages()
         setEvents(list || [])
         hideToast()
       } catch (e) {
@@ -84,7 +84,7 @@ export default function BuyPage() {
 
     try {
       showLoading('正在创建订单...')
-      const paymentParams = await buyRecharge(val)
+      const paymentParams = await createRechargeOrder(val)
       await Taro.requestPayment(paymentParams)
       showSuccess('充值成功！')
       await authStore.refreshAvailable()
@@ -107,7 +107,7 @@ export default function BuyPage() {
 
     try {
       showLoading('正在获取特惠...')
-      const paymentParams = await buyEvent(id)
+      const paymentParams = await createPackageOrder(id)
       await Taro.requestPayment(paymentParams)
       showSuccess('购买成功！')
       await authStore.refreshAvailable()
@@ -134,9 +134,9 @@ export default function BuyPage() {
             <Text className='num'>{available.balance || '0.00'}</Text>
           </View>
         </View>
-        {(available.arcade_days > 0 || available.days > 0) && (
+        {available.arcade_days > 0 && (
           <View className='vip-tag'>
-            <Text>音游畅玩剩余 {available.arcade_days ?? available.days} 天</Text>
+            <Text>音游畅玩剩余 {available.arcade_days} 天</Text>
           </View>
         )}
       </View>

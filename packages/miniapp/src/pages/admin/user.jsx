@@ -14,9 +14,9 @@ import {
 } from 'taro-ui'
 
 import {
-  adminUserInfo,
-  adminModifyUser,
-  adminRechange,
+  adminGetUserDetail,
+  adminUpdateUser,
+  adminAdjustBalance,
   uploadUrl,
 } from '@/api'
 import { authStore } from '@/stores/auth'
@@ -45,7 +45,7 @@ export default function AdminUserPage() {
   const loadData = useCallback(async () => {
     try {
       showLoading('加载中...')
-      const u = await adminUserInfo(uid)
+      const u = await adminGetUserDetail(uid)
       if (!u) {
         throw new Error('未找到该用户!')
       }
@@ -70,7 +70,7 @@ export default function AdminUserPage() {
     if (!entity) return
     try {
       showLoading('保存中...')
-      await adminModifyUser(entity)
+      await adminUpdateUser(entity)
       await loadData()
       showSuccess('保存成功')
     } catch (e) {
@@ -84,7 +84,7 @@ export default function AdminUserPage() {
     lockRef.current = true
     try {
       showLoading('处理中...')
-      await adminRechange({
+      await adminAdjustBalance({
         id: entity.id,
         type: 1,
         num: Number(num1),
@@ -106,7 +106,7 @@ export default function AdminUserPage() {
     lockRef.current = true
     try {
       showLoading('处理中...')
-      await adminRechange({
+      await adminAdjustBalance({
         id: entity.id,
         type: 2,
         num: Number(num2),
@@ -241,9 +241,9 @@ export default function AdminUserPage() {
           </View>
 
           <View className='form-item'>
-            <Text className='form-label'>可用天数</Text>
+            <Text className='form-label'>音游畅玩天数</Text>
             <View className='form-content'>
-              <Text className='form-text form-highlight'>{entity.days || 0} 天</Text>
+              <Text className='form-text form-highlight'>{entity.arcade_days ?? 0} 天</Text>
             </View>
           </View>
 

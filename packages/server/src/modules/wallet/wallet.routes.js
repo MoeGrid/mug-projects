@@ -76,14 +76,13 @@ walletRouter.use('*', userAuth);
  */
 walletRouter.get('/assets', (c) => {
   const user = currentUser(c);
-  const arcadeDays = daysFromExpire(user.arcade_expire_date || user.expire_date);
-  const tcgDays = daysFromExpire(user.tcg_expire_date);
+  const arcadeDays = daysFromExpire(user.arcade_expire_date);
+  const tcgDays = daysFromTcgExpire(user.tcg_expire_date);
   return c.json(
     ok({
       balance: toMoney(user.balance),
       arcade_days: arcadeDays,
       tcg_days: tcgDays,
-      days: arcadeDays,
     })
   );
 });

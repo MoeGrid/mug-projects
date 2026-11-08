@@ -5,7 +5,7 @@ import { joinUrl } from '@/utils/misc.js'
 export const baseUrl = 'https://v2.mug.moegrid.com'
 
 // 无需预检 Token 的白名单路径（防止递归死循环）
-const NO_AUTH_PATHS = ['/api/v1/auth/wechat-login', '/user/login']
+const NO_AUTH_PATHS = ['/api/v1/auth/wechat-login']
 
 /**
  * 核心请求客户端：支持自动 Token 注入、401 无感静默重登与并发锁重发
@@ -70,7 +70,6 @@ export const post = (url, data) => request('POST', url, data)
 export const put = (url, data) => request('PUT', url, data)
 export const patch = (url, data) => request('PATCH', url, data)
 export const del = (url, data) => request('DELETE', url, data)
-export const ajax = (method, url, data, isRetry) => request(method, url, data, isRetry)
 
 /**
  * 上传文件客户端

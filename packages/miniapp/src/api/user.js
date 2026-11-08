@@ -14,5 +14,3 @@ export function getUserProfile() {
 export function updateUserProfile(data) {
   return put('/api/v1/user/profile', data)
 }
-
-export const profile = updateUserProfile

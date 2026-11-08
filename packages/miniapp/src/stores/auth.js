@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { login as apiLogin, available as apiAvailable } from '@/api'
+import { wechatLogin, getWalletAssets } from '@/api'
 
 class AuthStore {
   constructor() {
@@ -9,7 +9,6 @@ class AuthStore {
       balance: 0,
       arcade_days: 0,
       tcg_days: 0,
-      days: 0,
     }
     this.listeners = new Set()
     this.loginPromise = null
@@ -63,13 +62,10 @@ class AuthStore {
 
   setAvailable(a) {
     const raw = a || {}
-    const arcadeDays = raw.arcade_days ?? raw.days ?? 0
-    const tcgDays = raw.tcg_days ?? 0
     this.available = {
       balance: raw.balance || 0,
-      arcade_days: arcadeDays,
-      tcg_days: tcgDays,
-      days: arcadeDays,
+      arcade_days: raw.arcade_days ?? 0,
+      tcg_days: raw.tcg_days ?? 0,
     }
     this.notify()
   }
@@ -77,7 +73,7 @@ class AuthStore {
   clear() {
     this.token = ''
     this.user = null
-    this.available = { balance: 0, arcade_days: 0, tcg_days: 0, days: 0 }
+    this.available = { balance: 0, arcade_days: 0, tcg_days: 0 }
     this.notify()
   }
 
@@ -95,7 +91,7 @@ class AuthStore {
     this.loginPromise = (async () => {
       try {
         const { code } = await Taro.login()
-        const res = await apiLogin(code)
+        const res = await wechatLogin(code)
         this.setToken(res.token)
         this.setUser(res)
         return res
@@ -110,7 +106,7 @@ class AuthStore {
   }
 
   async refreshAvailable() {
-    const res = await apiAvailable()
+    const res = await getWalletAssets()
     this.setAvailable(res)
     return res
   }

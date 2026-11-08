@@ -7,9 +7,6 @@ export function getArcadeDevices() {
   return get('/api/v1/arcade/devices')
 }
 
-export const fetchDeviceList = getArcadeDevices
-export const deviceList = getArcadeDevices
-
 /**
  * 远程 MQTT 脉冲投币
  * @param {number} deviceId 设备ID
@@ -17,8 +14,6 @@ export const deviceList = getArcadeDevices
 export function remoteInsertCoin(deviceId) {
   return post('/api/v1/arcade/coins/remote-insert', { deviceId })
 }
-
-export const useBalance2 = (id) => remoteInsertCoin(id)
 
 /**
  * BLE 蓝牙投币上报结算
@@ -28,8 +23,6 @@ export function bleConsumeCoin(deviceId) {
   return post('/api/v1/arcade/coins/ble-consume', { deviceId })
 }
 
-export const useBalance = (id) => bleConsumeCoin(id)
-
 /**
  * 分页获取街机投币记录（支持畅玩免扣与余额投币）
  * @param {{ page?: number, rows?: number }} params
@@ -37,5 +30,3 @@ export const useBalance = (id) => bleConsumeCoin(id)
 export function getCoinLogs(params) {
   return get('/api/v1/arcade/coins/logs', params)
 }
-
-export const coinLogList = getCoinLogs

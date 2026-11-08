@@ -33,7 +33,7 @@ function nextMsgId() {
  * @param {number} operatorId 操作者ID
  */
 async function settleCoinInTrx(trx, trxUser, device, operatorId) {
-  const days = daysFromExpire(trxUser.arcade_expire_date || trxUser.expire_date);
+  const days = daysFromExpire(trxUser.arcade_expire_date);
   const isFreePass = days > 0 && Boolean(device.can_use_days);
 
   if (isFreePass) {
@@ -134,7 +134,7 @@ arcadeRouter.post('/coins/remote-insert', async (c) => {
     const user = await findUser(trx, operatorId);
     if (!user) throw new AppError('用户不存在!');
 
-    const days = daysFromExpire(user.arcade_expire_date || user.expire_date);
+    const days = daysFromExpire(user.arcade_expire_date);
     if (toMoney(user.balance) < toMoney(device.price) && days <= 0) {
       throw new AppError('余额不足!');
     }

@@ -3,7 +3,7 @@ import Taro, { useReachBottom } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { AtSearchBar, AtAvatar, AtTag, AtLoadMore, AtToast } from 'taro-ui'
 
-import { adminSearchUser, uploadUrl } from '@/api'
+import { adminSearchUsers, uploadUrl } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 
@@ -26,7 +26,7 @@ export default function AdminIndexPage() {
   const searchData = useCallback(async (kw, page = 1, isClear = false) => {
     try {
       setLoading(true)
-      const res = await adminSearchUser({
+      const res = await adminSearchUsers({
         keyword: kw,
         page,
         rows: 20,

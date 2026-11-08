@@ -10,11 +10,11 @@ import {
 } from 'taro-ui'
 
 import {
-  fetchDeviceList,
-  useBalance,
-  useBalance2,
+  getArcadeDevices,
+  bleConsumeCoin,
+  remoteInsertCoin,
   uploadImage,
-  profile,
+  updateUserProfile,
   uploadUrl,
 } from '@/api'
 import { authStore } from '@/stores/auth'
@@ -267,7 +267,7 @@ export default function IndexPage() {
   // 投币方式计算：0禁止 1余额 2时间
   const insertType = useMemo(() => {
     if (selectedDevice) {
-      const arcadeDays = available.arcade_days ?? available.days ?? 0
+      const arcadeDays = available.arcade_days ?? 0
       if (arcadeDays > 0 && selectedDevice.can_use_days) {
         return 2
       } else if (available.balance >= selectedDevice.price) {
@@ -287,7 +287,7 @@ export default function IndexPage() {
   // 加载设备列表
   const loadDevices = useCallback(async () => {
     try {
-      const res = await fetchDeviceList()
+      const res = await getArcadeDevices()
       if (!res || !res.length) return
       setDeviceList(res)
 
@@ -440,10 +440,10 @@ export default function IndexPage() {
             throw new Error('未达到投币条件')
           }
           await insertCoinBLE(selectedDevice.mac, selectedDevice.coin)
-          await useBalance(selectedDevice.id)
+          await bleConsumeCoin(selectedDevice.id)
           break
         case 2: // MQTT投币
-          await useBalance2(selectedDevice.id)
+          await remoteInsertCoin(selectedDevice.id)
           break
         default:
           throw new Error('不支持的设备版本')
@@ -517,7 +517,7 @@ export default function IndexPage() {
     }
     showLoading('保存资料中...')
     try {
-      await profile({
+      await updateUserProfile({
         nickname: profileNickname,
         avatar: profileAvatar,
       })
@@ -571,7 +571,7 @@ export default function IndexPage() {
           insertType={insertType}
           insertSubText={insertSubText}
           onInsert={handleInsert}
-          days={available?.arcade_days ?? available?.days ?? 0}
+          days={available?.arcade_days ?? 0}
         />
       )}
 
