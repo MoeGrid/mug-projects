@@ -85,7 +85,6 @@ tcgRouter.post('/passes/recharge', async (c) => {
       balance_after: newBalance,
       type: 3, // 卡牌通行证
       remark: `${plan.name}充值办理`,
-      related_id: plan.id,
     });
 
     const remainingDays = daysFromTcgExpire(newExpire);

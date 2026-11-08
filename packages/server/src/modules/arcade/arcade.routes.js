@@ -70,7 +70,6 @@ async function settleCoinInTrx(trx, trxUser, device, operatorId) {
       balance_after: balance,
       type: 1, // 投币消费
       remark: `${device.name || '街机'} 投币消费`,
-      related_id: `coin_${coinLogId}`,
     });
   }
 }

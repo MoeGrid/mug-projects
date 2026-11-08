@@ -220,7 +220,7 @@ export default function RecordPage() {
           {transRecords.length > 0 ? (
             <View className='record-cards-list'>
               {transRecords.map((item) => {
-                const meta = getTransMeta(item.type ?? item.biz_type)
+                const meta = getTransMeta(item.type)
                 const isPositive = Number(item.change_amount) > 0
                 return (
                   <View key={item.id} className='record-card-item'>
@@ -245,7 +245,7 @@ export default function RecordPage() {
                           : `-¥${Math.abs(Number(item.change_amount)).toFixed(2)}`}
                       </Text>
                       <Text className='balance-remain'>
-                        结余 ¥{item.balance_after || item.balance}
+                        结余 ¥{item.balance_after}
                       </Text>
                     </View>
                   </View>

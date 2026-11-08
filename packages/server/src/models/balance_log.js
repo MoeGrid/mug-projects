@@ -3,24 +3,22 @@ import { tsNow } from '../utils/date.js';
 
 /**
  * 写入资金流水（纯净财务变动账本）
- * 自动填充新字段与兼容旧字段
+ * @param {object} dbh 数据库实例或事务
+ * @param {object} data
+ * @param {number} data.user_id 用户ID
+ * @param {number|string} data.change_amount 变动金额(+/-)
+ * @param {number|string} data.balance_after 变动后结余
+ * @param {number} data.type 1投币 2充值 3TCG PASS 4管理员调配
+ * @param {string} data.remark 摘要说明
  */
 export async function insertBalanceLog(dbh, data) {
   const ts = tsNow();
-  const changeAmount = data.change_amount !== undefined ? data.change_amount : (data.num ?? 0);
-  const balanceAfter = data.balance_after !== undefined ? data.balance_after : (data.balance ?? 0);
-  const type = data.type !== undefined ? data.type : (data.biz_type ?? 1);
-
   const payload = {
     user_id: data.user_id,
-    change_amount: changeAmount,
-    balance_after: balanceAfter,
-    type,
+    change_amount: data.change_amount,
+    balance_after: data.balance_after,
+    type: data.type,
     remark: data.remark || '账户资金变动',
-    related_id: data.related_id ? String(data.related_id) : null,
-    // 兼容历史老字段
-    num: changeAmount,
-    balance: balanceAfter,
     create_time: ts,
     update_time: ts,
   };

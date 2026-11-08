@@ -53,7 +53,6 @@ walletRouter.post('/wechat-pay/notify', async (c) => {
               balance_after: balance,
               type: 2, // 微信充值
               remark: '微信支付充值',
-              related_id: order.we_order_id,
             });
           });
         }
@@ -207,16 +206,11 @@ walletRouter.get('/transactions', async (c) => {
       data: logs.map((item) => ({
         id: item.id,
         user_id: item.user_id,
-        change_amount: toMoney(item.change_amount ?? item.num),
-        balance_after: toMoney(item.balance_after ?? item.balance),
+        change_amount: toMoney(item.change_amount),
+        balance_after: toMoney(item.balance_after),
         type: item.type,
         remark: item.remark || (item.type === 2 ? '微信支付充值' : item.type === 1 ? '街机投币消费' : item.type === 3 ? '卡牌通行证开通' : '系统手动调配'),
-        related_id: item.related_id,
         create_time: item.create_time,
-        // 兼容原字段属性
-        num: toMoney(item.change_amount ?? item.num),
-        balance: toMoney(item.balance_after ?? item.balance),
-        biz_type: item.type,
       })),
     })
   );
