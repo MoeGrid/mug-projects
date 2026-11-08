@@ -1,0 +1,31 @@
+import { get, post } from './client'
+
+/**
+ * 获取音游街机机台分组与设备列表
+ */
+export function getArcadeDevices() {
+  return get('/api/v1/arcade/devices')
+}
+
+export const fetchDeviceList = getArcadeDevices
+export const deviceList = getArcadeDevices
+
+/**
+ * 远程 MQTT 脉冲投币
+ * @param {number} deviceId 设备ID
+ */
+export function remoteInsertCoin(deviceId) {
+  return post('/api/v1/arcade/coins/remote-insert', { deviceId })
+}
+
+export const useBalance2 = (id) => remoteInsertCoin(id)
+
+/**
+ * BLE 蓝牙投币上报结算
+ * @param {number} deviceId 设备ID
+ */
+export function bleConsumeCoin(deviceId) {
+  return post('/api/v1/arcade/coins/ble-consume', { deviceId })
+}
+
+export const useBalance = (id) => bleConsumeCoin(id)
