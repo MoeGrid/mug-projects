@@ -18,7 +18,7 @@ import {
   adminModifyUser,
   adminRechange,
   uploadUrl,
-} from '@/api/api'
+} from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 

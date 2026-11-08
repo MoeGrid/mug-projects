@@ -3,7 +3,7 @@ import Taro, { useReachBottom, useDidShow } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { AtSearchBar, AtAvatar, AtTag, AtLoadMore, AtToast } from 'taro-ui'
 
-import { adminSearchUser, uploadUrl } from '@/api/api'
+import { adminSearchUser, uploadUrl } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 

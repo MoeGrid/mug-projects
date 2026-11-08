@@ -1,10 +1,9 @@
-// 数据库连接（对应老项目 config/database.php 的 mug 连接）
-import {Kysely, MysqlDialect} from 'kysely';
-import {createPool} from 'mysql2';
-import {config} from '../config.js';
-import type {Database} from './types.js';
+// Kysely MySQL 数据库连接池
+import { Kysely, MysqlDialect } from 'kysely';
+import { createPool } from 'mysql2';
+import { config } from '../config.js';
 
-export const db = new Kysely<Database>({
+export const db = new Kysely({
   dialect: new MysqlDialect({
     pool: createPool({
       host: config.db.host,

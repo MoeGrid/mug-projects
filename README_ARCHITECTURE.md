@@ -84,21 +84,32 @@
 
 ## 三、工程结构对照
 
-### 服务端结构（`packages/server/src/`）
+### 服务端结构（`packages/server/src/` - 纯原生 JavaScript ES Module）
+> **无需任何构建/编译步骤（无 tsc、无 dist）**，直接使用原生 Node.js ESM 运行，随改随生效。
+
 ```text
 packages/server/src/
-├── config.ts               # 集中环境变量与配置
-├── index.ts                # HTTP 与 MQTT 服务启动入口
-├── app.ts                  # 全新架构中间件编排与模块装载
+├── config.js               # 集中环境变量与配置
+├── index.js                # HTTP 与 MQTT 服务启动入口
+├── app.js                  # 全新架构中间件编排与模块装载
+├── db/
+│   └── client.js           # MySQL 连接池与 Kysely 实例
+├── models/                 # 领域数据模型层
+├── services/               # 微信登录/支付/MQTT/雪花算法服务
+├── utils/                  # 金额计算、时间处理、响应包装、校验等
 └── modules/                # 六大高内聚领域模块
-    ├── auth/               # 微信静默登录
-    ├── user/               # 用户资料
-    ├── wallet/             # 钱包资产、充值下单、微信支付通知
-    ├── arcade/             # 街机分组与投币指令
-    ├── tcg/                # 卡牌通行证与赛事活动（新增）
-    ├── common/             # 通用文件上传
-    └── admin/              # 运营管理与安全调账
+    ├── auth/               # 微信静默登录 (auth.routes.js)
+    ├── user/               # 用户资料 (user.routes.js)
+    ├── wallet/             # 钱包资产、充值下单、微信支付通知 (wallet.routes.js)
+    ├── arcade/             # 街机分组与投币指令 (arcade.routes.js)
+    ├── tcg/                # 卡牌通行证与赛事活动（新增）(tcg.routes.js)
+    ├── common/             # 通用文件上传 (common.routes.js)
+    └── admin/              # 运营管理与安全调账 (admin.routes.js)
 ```
+
+#### 运行与部署命令
+* **本地热重载开发**：`pnpm dev:server`（底层执行 `node --watch src/index.js`）
+* **生产启动**：`pnpm start` 或直接 `node src/index.js`（不再需要 `build`）
 
 ### 小程序 API 结构（`packages/miniapp/src/api/`）
 ```text

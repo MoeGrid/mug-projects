@@ -1,8 +1,7 @@
-// 服务启动（对应老项目 public/index.php 入口）
-import {serve} from '@hono/node-server';
+import { serve } from '@hono/node-server';
 import app from './app.js';
-import {config} from './config.js';
-import {endMqtt, initMqtt} from './services/mqtt.js';
+import { config } from './config.js';
+import { initMqtt, endMqtt } from './services/mqtt.js';
 
 // 建立常驻 MQTT 连接（非阻塞；broker 不可达时 mqtt.js 自动重连，不影响 HTTP 起服）
 initMqtt();

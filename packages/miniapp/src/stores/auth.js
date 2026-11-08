@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { login as apiLogin, available as apiAvailable } from '@/api/api'
+import { login as apiLogin, available as apiAvailable } from '@/api'
 
 class AuthStore {
   constructor() {

@@ -3,7 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Input } from '@tarojs/components'
 import { AtToast } from 'taro-ui'
 
-import { eventList, buyRecharge, buyEvent } from '@/api/api'
+import { eventList, buyRecharge, buyEvent } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 

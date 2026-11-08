@@ -16,7 +16,7 @@ import {
   uploadImage,
   profile,
   uploadUrl,
-} from '@/api/api'
+} from '@/api'
 import { authStore } from '@/stores/auth'
 import { settingStore } from '@/stores/setting'
 import { coinSdk, BLEError } from '@/utils/coin-sdk'

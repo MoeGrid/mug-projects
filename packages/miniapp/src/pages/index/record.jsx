@@ -3,7 +3,7 @@ import Taro, { usePullDownRefresh, useReachBottom } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { AtLoadMore, AtToast } from 'taro-ui'
 
-import { balanceLogList } from '@/api/api'
+import { balanceLogList } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
 
