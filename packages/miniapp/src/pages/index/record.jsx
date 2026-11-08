@@ -134,8 +134,6 @@ export default function RecordPage() {
         return { icon: '🎴', cls: 'type-pass', defaultTitle: '卡牌通行证开通' }
       case 4:
         return { icon: '⚙️', cls: 'type-admin', defaultTitle: '系统手动调配' }
-      case 5:
-        return { icon: '🪙', cls: 'type-paseli', defaultTitle: 'PASELI 兑换' }
       default:
         return { icon: '📄', cls: 'type-default', defaultTitle: '账户资金变动' }
     }
