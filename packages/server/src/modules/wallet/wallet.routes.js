@@ -12,7 +12,6 @@ import { addMoney, toCents, toMoney } from '../../utils/money.js';
 import { findActiveEvent, listActiveEvents } from '../../models/event.js';
 import { createOrder, findOrderByWeOrderId, updateOrder } from '../../models/order.js';
 import { insertBalanceLog } from '../../models/balance_log.js';
-import { attachDeviceAndGroup } from '../../models/device.js';
 
 export const walletRouter = new Hono();
 
@@ -52,7 +51,7 @@ walletRouter.post('/wechat-pay/notify', async (c) => {
               user_id: user.id,
               change_amount: toMoney(order.num),
               balance_after: balance,
-              biz_type: 2, // 微信充值
+              type: 2, // 微信充值
               remark: '微信支付充值',
               related_id: order.we_order_id,
             });
@@ -210,14 +209,14 @@ walletRouter.get('/transactions', async (c) => {
         user_id: item.user_id,
         change_amount: toMoney(item.change_amount ?? item.num),
         balance_after: toMoney(item.balance_after ?? item.balance),
-        biz_type: item.biz_type ?? item.type,
-        remark: item.remark || (item.type === 3 ? '微信充值' : item.type === 1 ? '投币消费' : '系统调配'),
+        type: item.type,
+        remark: item.remark || (item.type === 2 ? '微信支付充值' : item.type === 1 ? '街机投币消费' : item.type === 3 ? '卡牌通行证开通' : '系统手动调配'),
         related_id: item.related_id,
         create_time: item.create_time,
         // 兼容原字段属性
         num: toMoney(item.change_amount ?? item.num),
         balance: toMoney(item.balance_after ?? item.balance),
-        type: item.biz_type ?? item.type,
+        biz_type: item.type,
       })),
     })
   );

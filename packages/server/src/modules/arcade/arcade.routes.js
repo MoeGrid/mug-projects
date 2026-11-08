@@ -68,7 +68,7 @@ async function settleCoinInTrx(trx, trxUser, device, operatorId) {
       user_id: operatorId,
       change_amount: -toMoney(device.price),
       balance_after: balance,
-      biz_type: 1, // 投币消费
+      type: 1, // 投币消费
       remark: `${device.name || '街机'} 投币消费`,
       related_id: `coin_${coinLogId}`,
     });

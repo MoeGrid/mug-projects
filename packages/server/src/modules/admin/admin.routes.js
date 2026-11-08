@@ -122,8 +122,8 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         num: zNum('数量'),
       })
       .superRefine((v, ctx) => {
-        if (v.type !== 1 && v.type !== 2) ctx.addIssue({ code: 'custom', message: '类型取值错误（1余额，2天数）', path: ['type'] });
-        if (v.type === 2 && !Number.isInteger(v.num)) ctx.addIssue({ code: 'custom', message: '天数必须是整数', path: ['num'] });
+        if (v.type !== 1 && v.type !== 2 && v.type !== 3) ctx.addIssue({ code: 'custom', message: '类型取值错误（1余额，2街机天数，3TCG天数）', path: ['type'] });
+        if ((v.type === 2 || v.type === 3) && !Number.isInteger(v.num)) ctx.addIssue({ code: 'custom', message: '天数必须是整数', path: ['num'] });
       })
   );
 
@@ -138,7 +138,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         user_id: user.id,
         change_amount: toMoney(num),
         balance_after: balance,
-        biz_type: 4,
+        type: 4,
         remark: num >= 0 ? `管理员补款 +¥${toMoney(num)}` : `管理员扣款 -¥${toMoney(Math.abs(num))}`,
       });
     } else if (type === 2) {

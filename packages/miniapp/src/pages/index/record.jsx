@@ -124,8 +124,8 @@ export default function RecordPage() {
   })
 
   // 资金流水图标与样式
-  const getTransMeta = (bizType) => {
-    switch (bizType) {
+  const getTransMeta = (type) => {
+    switch (type) {
       case 1:
         return { icon: '🎮', cls: 'type-coin', defaultTitle: '街机投币消费' }
       case 2:
@@ -220,7 +220,7 @@ export default function RecordPage() {
           {transRecords.length > 0 ? (
             <View className='record-cards-list'>
               {transRecords.map((item) => {
-                const meta = getTransMeta(item.biz_type)
+                const meta = getTransMeta(item.type ?? item.biz_type)
                 const isPositive = Number(item.change_amount) > 0
                 return (
                   <View key={item.id} className='record-card-item'>

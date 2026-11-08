@@ -83,7 +83,7 @@ tcgRouter.post('/passes/recharge', async (c) => {
       user_id: user.id,
       change_amount: -toMoney(plan.price),
       balance_after: newBalance,
-      biz_type: 3, // 卡牌通行证
+      type: 3, // 卡牌通行证
       remark: `${plan.name}充值办理`,
       related_id: plan.id,
     });
