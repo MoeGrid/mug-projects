@@ -17,6 +17,9 @@ class AuthStore {
     try {
       Taro.removeStorageSync('mug_auth_token')
       Taro.removeStorageSync('mug_auth_user')
+      Taro.removeStorageSync('mock_card_pass_active')
+      Taro.removeStorageSync('mock_card_pass_plan')
+      Taro.removeStorageSync('mock_card_pass_expire')
     } catch (e) {}
   }
 

@@ -3,13 +3,14 @@ import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
 import { rechargeTcgPass } from '@/api'
+import { authStore } from '@/stores/auth'
 import PassCard from './PassCard'
 
-// 卡牌通行证方案配置（充值天数包，可自由累加叠加）
+// 卡牌通行天数方案配置（充值天数，可自由累加）
 export const PASS_PLANS = [
   {
     id: 'day',
-    title: '充值 1 天 (+1天)',
+    title: '充值 1 天',
     subTitle: '当天有效，至次日早 6:00 结算',
     price: 15,
     unit: '1天',
@@ -25,7 +26,7 @@ export const PASS_PLANS = [
   },
   {
     id: 'monthly',
-    title: '充值 30 天 (+30天)',
+    title: '充值 30 天',
     subTitle: '包含当天整整30天，统一早 6:00 结算',
     price: 180,
     unit: '30天',
@@ -42,18 +43,12 @@ export const PASS_PLANS = [
 ]
 
 export default function CardPassSection({
-  user,
   available,
-  isPassValid,
-  passTypeName,
-  passDaysRemaining,
-  mockPassActive,
-  mockPassExpire,
-  onToggleMockPass,
-  onPassActivated,
+  onRechargeSuccess,
   showDialog,
   showLoading,
   showSuccess,
+  showError,
 }) {
   const [buyPassModalVisible, setBuyPassModalVisible] = useState(false)
   const [selectedPassPlan, setSelectedPassPlan] = useState(null)
@@ -64,7 +59,7 @@ export default function CardPassSection({
     setBuyPassModalVisible(true)
   }
 
-  // 确认开通（天数累加）
+  // 确认开通（调用后端真实充值天数接口）
   const handleConfirmBuyPass = async () => {
     if (!selectedPassPlan) return
 
@@ -73,7 +68,7 @@ export default function CardPassSection({
       setBuyPassModalVisible(false)
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以充值【${selectedPassPlan.title}】（需 ¥${selectedPassPlan.price}）。是否前往充值？`,
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以购买【${selectedPassPlan.title}】（需 ¥${selectedPassPlan.price}）。是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -86,21 +81,15 @@ export default function CardPassSection({
     try {
       showLoading('正在充值通行天数...')
       const res = await rechargeTcgPass(selectedPassPlan.id)
-      onPassActivated({
-        plan: selectedPassPlan,
-        addDays: selectedPassPlan.days,
-        serverData: res,
-      })
+      await authStore.refreshAvailable()
       setBuyPassModalVisible(false)
-      showSuccess(`充值成功！已累计 ${selectedPassPlan.days} 天畅玩`)
+      showSuccess(`充值成功！已累计增加 ${selectedPassPlan.days} 天畅玩`)
+      if (onRechargeSuccess) {
+        onRechargeSuccess(res)
+      }
     } catch (e) {
-      // 容错降级体验
-      onPassActivated({
-        plan: selectedPassPlan,
-        addDays: selectedPassPlan.days,
-      })
       setBuyPassModalVisible(false)
-      showSuccess(`充值成功！已累计 ${selectedPassPlan.days} 天畅玩`)
+      showError(e.message || '充值失败，请稍后重试')
     }
   }
 
@@ -111,7 +100,7 @@ export default function CardPassSection({
         title='MUG TCG PASS'
         watermark='TCG PASS'
         icon='🎴'
-        days={passDaysRemaining}
+        days={available?.tcg_days || 0}
         mainDesc='TCG专区畅玩特权'
         subDesc='专座全天畅玩 · 无限次进出'
         inactiveDesc='暂未开通畅玩通行'
@@ -123,7 +112,7 @@ export default function CardPassSection({
       <View className='pass-plans-section'>
         <View className='section-header'>
           <Text className='section-title'>充值卡牌通行天数</Text>
-          <Text className='section-subtitle'>到店畅玩 · 专座对决 · 自由约战</Text>
+          <Text className='section-subtitle'>到店畅玩 · 自由约战</Text>
         </View>
 
         <View className='plans-grid'>
@@ -231,7 +220,7 @@ export default function CardPassSection({
               </View>
 
               <Text className='modal-tip-text'>
-                * 确认开通将扣除相应账户余额，立即点亮电子凭证，进店出示即可畅玩。
+                * 确认充值将扣除相应账户余额，立即激活电子通行天数，进店出示即可畅玩。
               </Text>
             </View>
           )}
