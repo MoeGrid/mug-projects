@@ -186,11 +186,8 @@ export default function IndexPage() {
   }, [passDaysRemaining, mockPassActive, mockPassExpire])
 
   const passTypeName = useMemo(() => {
-    if (passDaysRemaining > 1) {
-      return `尊享决斗月卡 (${passDaysRemaining}天有效)`
-    }
-    if (passDaysRemaining === 1) {
-      return '单日通行天卡'
+    if (passDaysRemaining > 0) {
+      return 'TCG 畅玩通行证'
     }
     return '未持有通行证'
   }, [passDaysRemaining])
@@ -279,7 +276,7 @@ export default function IndexPage() {
 
   const insertSubText = useMemo(() => {
     if (!selectedDevice) return '请先选择机台'
-    if (insertType === 2) return '畅玩特权生效中 · 本次投币免扣币'
+    if (insertType === 2) return '本次投币免扣币'
     if (insertType === 1) return `扣除余额 ¥${selectedDevice.price} / ${selectedDevice.unit || '次'}`
     return `余额不足 (需要 ¥${selectedDevice.price})，请先充值`
   }, [insertType, selectedDevice])

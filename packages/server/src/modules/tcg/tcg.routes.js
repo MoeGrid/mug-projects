@@ -19,18 +19,18 @@ const currentUser = (c) => c.get('user');
 export const TCG_PASS_PLANS = {
   day: {
     id: 'day',
-    name: '单日天卡 (+1天)',
+    name: '充值 1 天 (+1天)',
     price: 15,
     days: 1,
-    badge: '单日门票',
+    badge: '单日畅玩',
     desc: '当天有效，次日早 6:00 前有效，可自由累加',
   },
   monthly: {
     id: 'monthly',
-    name: '尊享决斗月卡 (+30天)',
+    name: '充值 30 天 (+30天)',
     price: 180,
     days: 30,
-    badge: '热门推荐',
+    badge: '特惠畅玩',
     desc: '包含当天整整30天，统一早 6:00 结算，可自由累加',
   },
 };
@@ -84,7 +84,7 @@ tcgRouter.post('/passes/recharge', async (c) => {
       change_amount: -toMoney(plan.price),
       balance_after: newBalance,
       type: 3, // 卡牌通行证
-      remark: `${plan.name}充值办理`,
+      remark: `充值TCG通行天数(+${plan.days}天)`,
     });
 
     const remainingDays = daysFromTcgExpire(newExpire);

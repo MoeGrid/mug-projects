@@ -4,37 +4,37 @@ import { View, Text, Button } from '@tarojs/components'
 import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
 import { rechargeTcgPass } from '@/api'
 
-// 卡牌通行证方案配置（天卡、月卡均为充值天数，可自由累加叠加）
+// 卡牌通行证方案配置（充值天数包，可自由累加叠加）
 export const PASS_PLANS = [
   {
     id: 'day',
-    title: '单日天卡 (+1天)',
-    subTitle: '当天有效，至次日早 6:00 失效',
+    title: '充值 1 天 (+1天)',
+    subTitle: '当天有效，至次日早 6:00 结算',
     price: 15,
     unit: '1天',
     days: 1,
-    tag: '单日门票',
+    tag: '单日畅玩',
     featured: false,
     benefits: [
       '当天营业时间内无限次进出',
       '次日早 6:00 前有效，夜场无忧',
-      '天数可叠加累计，多买多充',
+      '天数可叠加累计，多充多享',
       '免费借用高品质对战卡垫',
     ],
   },
   {
     id: 'monthly',
-    title: '尊享决斗月卡 (+30天)',
+    title: '充值 30 天 (+30天)',
     subTitle: '包含当天整整30天，统一早 6:00 结算',
     price: 180,
     unit: '30天',
     days: 30,
-    tag: '🔥 热门推荐',
+    tag: '🔥 热门特惠',
     featured: true,
     benefits: [
       '包含当天整整 30 天全时段畅玩',
       '每天统一早 6:00 结算重置',
-      '天数可自由累加（如月卡+天卡=31天）',
+      '天数可自由累加顺延',
       '店内正品卡牌与周边享95折',
     ],
   },
@@ -156,9 +156,9 @@ export default function CardPassSection({
         ) : (
           <View className='pass-inner inactive'>
             <View className='inactive-badge'>🎴 MUG TCG PASS</View>
-            <Text className='inactive-title'>暂未持有有效通行证</Text>
+            <Text className='inactive-title'>暂未开通畅玩通行</Text>
             <Text className='inactive-desc'>
-              天卡与月卡为充值天数包，支持按需自由累加。当天有效且统一持续至次日清晨 06:00 结算。请在下方选择套餐充值开通。
+              通行证以天数为单位充值，支持按需自由累加。每天统一早 06:00 结算。请在下方选择充值天数。
             </Text>
           </View>
         )}
@@ -177,7 +177,7 @@ export default function CardPassSection({
       {/* B. 通行证套餐办理专区 */}
       <View className='pass-plans-section'>
         <View className='section-header'>
-          <Text className='section-title'>办理卡牌通行证 / 门票</Text>
+          <Text className='section-title'>充值卡牌通行天数</Text>
           <Text className='section-subtitle'>到店畅玩 · 专座对决 · 自由约战</Text>
         </View>
 
@@ -212,7 +212,7 @@ export default function CardPassSection({
                 className={`plan-action-btn ${plan.featured ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => handleOpenBuyPass(plan)}
               >
-                <Text>立即开通</Text>
+                <Text>立即充值</Text>
               </View>
             </View>
           ))}
@@ -240,7 +240,7 @@ export default function CardPassSection({
         <View className='rule-item'>
           <Text className='rule-badge'>专属特权</Text>
           <Text className='rule-text'>
-            尊享月卡包含特调饮品与借用卡垫等额外福利，详情可在前台凭卡领取。
+            通行证有效期间享特调饮品折扣与借用卡垫等额外福利，详情可在前台凭卡咨询。
           </Text>
         </View>
         <View className='rule-item'>
@@ -257,7 +257,7 @@ export default function CardPassSection({
         closeOnClickOverlay={false}
         onClose={() => setBuyPassModalVisible(false)}
       >
-        <AtModalHeader>开通卡牌通行证</AtModalHeader>
+        <AtModalHeader>充值卡牌通行天数</AtModalHeader>
         <AtModalContent>
           {selectedPassPlan && (
             <View className='buy-pass-modal-content'>
@@ -293,7 +293,7 @@ export default function CardPassSection({
         </AtModalContent>
         <AtModalAction>
           <Button onClick={() => setBuyPassModalVisible(false)}>取消</Button>
-          <Button onClick={handleConfirmBuyPass}>确认开通</Button>
+          <Button onClick={handleConfirmBuyPass}>确认充值</Button>
         </AtModalAction>
       </AtModal>
     </View>
