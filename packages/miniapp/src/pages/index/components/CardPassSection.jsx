@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
 import { rechargeTcgPass } from '@/api'
+import PassCard from './PassCard'
 
 // 卡牌通行证方案配置（充值天数包，可自由累加叠加）
 export const PASS_PLANS = [
@@ -105,74 +106,18 @@ export default function CardPassSection({
 
   return (
     <View className='card-mode-section'>
-      {/* A. 电子通行证专属凭证卡 (TCG Pass Card) */}
-      <View className={`pass-hologram-card ${isPassValid ? 'card-active' : 'card-inactive'}`}>
-        <View className='hologram-shimmer' />
-        <View className='card-watermark'>TCG PASS</View>
-
-        {isPassValid ? (
-          <View className='pass-inner active'>
-            {/* 卡面顶部：品牌标与生效状态 */}
-            <View className='pass-card-brand-row'>
-              <View className='brand-left'>
-                <Text className='brand-icon'>🎴</Text>
-                <View className='brand-text-col'>
-                  <Text className='brand-title'>MUG TCG PASS</Text>
-                  <Text className='brand-sub'>卡牌专区专属通行凭证</Text>
-                </View>
-              </View>
-              <View className='pass-status-pill'>
-                <View className='pulse-dot' />
-                <Text>生效中</Text>
-              </View>
-            </View>
-
-            {/* 卡面中心：通行证等级与天数 */}
-            <View className='pass-main-grade'>
-              <View className='grade-info'>
-                <Text className='tier-title'>{passTypeName}</Text>
-                <Text className='tier-privilege'>TCG 专座全天畅玩 · 无限次进出</Text>
-              </View>
-              <View className='days-counter'>
-                <Text className='days-num'>{passDaysRemaining}</Text>
-                <Text className='days-unit'>天剩余</Text>
-              </View>
-            </View>
-
-            {/* 卡面底部：凭证卡号与有效期 */}
-            <View className='pass-card-footer'>
-              <View className='meta-item'>
-                <Text className='meta-label'>凭证编号</Text>
-                <Text className='meta-val'>
-                  NO. {user?.id ? `TCG-${String(user.id).padStart(5, '0')}` : 'TCG-88990'}
-                </Text>
-              </View>
-              <View className='meta-item text-right'>
-                <Text className='meta-label'>有效期至</Text>
-                <Text className='meta-val'>{mockPassExpire}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <View className='pass-inner inactive'>
-            <View className='inactive-badge'>🎴 MUG TCG PASS</View>
-            <Text className='inactive-title'>暂未开通畅玩通行</Text>
-            <Text className='inactive-desc'>
-              通行证以天数为单位充值，支持按需自由累加。每天统一早 06:00 结算。请在下方选择充值天数。
-            </Text>
-          </View>
-        )}
-
-        {/* 效果体验辅助切换 */}
-        <View className='card-footer-controls'>
-          <View className='demo-toggle-btn' onClick={onToggleMockPass}>
-            <Text className='toggle-icon'>⚡</Text>
-            <Text className='toggle-text'>
-              {mockPassActive ? '已点亮凭证 (点击恢复未持有)' : '点击预览点亮凭证效果'}
-            </Text>
-          </View>
-        </View>
-      </View>
+      {/* A. 电子通行凭证卡 (直接复用 PassCard 组件，与 MUG 卡片完全一致) */}
+      <PassCard
+        title='MUG TCG PASS'
+        watermark='TCG PASS'
+        icon='🎴'
+        days={passDaysRemaining}
+        mainDesc='TCG专区畅玩特权'
+        subDesc='专座全天畅玩 · 无限次进出'
+        inactiveDesc='暂未开通畅玩通行'
+        inactiveSubDesc='按需充值天数 · 每天统一早 06:00 结算'
+        showWhenZero={true}
+      />
 
       {/* B. 通行证套餐办理专区 */}
       <View className='pass-plans-section'>

@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text, Picker } from '@tarojs/components'
+import PassCard from './PassCard'
 
 export default function ArcadeConsole({
   selectedGroup,
@@ -16,34 +17,15 @@ export default function ArcadeConsole({
   return (
     <>
       {/* 0. 内部特权通行证 MUG ARC PASS (仅在 days > 0 时对内展示) */}
-      {days > 0 && (
-        <View className='mug-arc-pass-card'>
-          <View className='hologram-shimmer' />
-          <View className='card-watermark'>ARC PASS</View>
-          <View className='pass-inner'>
-            <View className='pass-top'>
-              <View className='pass-brand'>
-                <Text className='brand-icon'>⚡</Text>
-                <Text className='brand-title'>MUG ARC PASS</Text>
-              </View>
-              <View className='pass-status'>
-                <View className='pulse-dot' />
-                <Text>畅玩生效中</Text>
-              </View>
-            </View>
-            <View className='pass-content'>
-              <View className='privilege-desc'>
-                <Text className='desc-main'>全街机畅玩特权</Text>
-                <Text className='desc-sub'>投币免扣余额 · 尽情游玩</Text>
-              </View>
-              <View className='days-wrap'>
-                <Text className='days-num'>{days}</Text>
-                <Text className='days-unit'>天剩余</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      )}
+      <PassCard
+        title='MUG ARC PASS'
+        watermark='ARC PASS'
+        icon='⚡'
+        days={days}
+        mainDesc='全街机畅玩特权'
+        subDesc='投币免扣余额 · 尽情游玩'
+        showWhenZero={false}
+      />
 
       {/* 1. 当前选中机台卡片 */}
       <Picker
