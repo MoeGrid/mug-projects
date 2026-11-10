@@ -153,44 +153,40 @@ export default function IndexPage() {
 
   // 加载设备列表
   const loadDevices = useCallback(async () => {
-    try {
-      const res = await getArcadeDevices()
-      if (!res || !res.length) return
-      setDeviceList(res)
+    const res = await getArcadeDevices()
+    if (!res || !res.length) return
+    setDeviceList(res)
 
-      const col0 = res.map((item) => item.name)
-      const col1 = (res[0].devices || []).map((d) => d.name)
-      setPickerColumns([col0, col1])
+    const col0 = res.map((item) => item.name)
+    const col1 = (res[0].devices || []).map((d) => d.name)
+    setPickerColumns([col0, col1])
 
-      const savedDeviceId = settingStore.state.device
-      let matchedGroup = null
-      let matchedDevice = null
-      let matchedGroupIdx = 0
-      let matchedDeviceIdx = 0
+    const savedDeviceId = settingStore.state.device
+    let matchedGroup = null
+    let matchedDevice = null
+    let matchedGroupIdx = 0
+    let matchedDeviceIdx = 0
 
-      res.forEach((group, gIdx) => {
-        ;(group.devices || []).forEach((dev, dIdx) => {
-          if (dev.id === savedDeviceId) {
-            matchedGroup = group
-            matchedDevice = dev
-            matchedGroupIdx = gIdx
-            matchedDeviceIdx = dIdx
-          }
-        })
+    res.forEach((group, gIdx) => {
+      ;(group.devices || []).forEach((dev, dIdx) => {
+        if (dev.id === savedDeviceId) {
+          matchedGroup = group
+          matchedDevice = dev
+          matchedGroupIdx = gIdx
+          matchedDeviceIdx = dIdx
+        }
       })
+    })
 
-      if (matchedDevice) {
-        setSelectedGroup(matchedGroup)
-        setSelectedDevice(matchedDevice)
-        setPickerValue([matchedGroupIdx, matchedDeviceIdx])
-        setPickerColumns([col0, (matchedGroup.devices || []).map((d) => d.name)])
-      } else {
-        setSelectedGroup(res[0])
-        setSelectedDevice(res[0].devices?.[0] || null)
-        setPickerValue([0, 0])
-      }
-    } catch (e) {
-      console.error('加载设备失败:', e)
+    if (matchedDevice) {
+      setSelectedGroup(matchedGroup)
+      setSelectedDevice(matchedDevice)
+      setPickerValue([matchedGroupIdx, matchedDeviceIdx])
+      setPickerColumns([col0, (matchedGroup.devices || []).map((d) => d.name)])
+    } else {
+      setSelectedGroup(res[0])
+      setSelectedDevice(res[0].devices?.[0] || null)
+      setPickerValue([0, 0])
     }
   }, [])
 
@@ -204,46 +200,45 @@ export default function IndexPage() {
 
   // 加载 TCG 通行证与今日状态（支持 async/await 统一等待）
   const loadTcgStatus = useCallback(async () => {
-    try {
-      const res = await getTcgPassOptions()
-      if (res) {
-        if (res.day_price) {
-          setTcgPricing({
-            day_price: Number(res.day_price),
-            month_price: Number(res.month_price),
-          })
-        }
-        setTcgStatus({
-          isActiveToday: Boolean(res.is_active_today),
-          hasMonthlyPass: Boolean(res.has_monthly_pass),
-          tcgDays: Number(res.tcg_days || 0),
+    const res = await getTcgPassOptions()
+    if (res) {
+      if (res.day_price) {
+        setTcgPricing({
+          day_price: Number(res.day_price),
+          month_price: Number(res.month_price),
         })
       }
-      return res
-    } catch (e) {
-      console.error('加载TCG状态失败:', e)
+      setTcgStatus({
+        isActiveToday: Boolean(res.is_active_today),
+        hasMonthlyPass: Boolean(res.has_monthly_pass),
+        tcgDays: Number(res.tcg_days || 0),
+      })
     }
+    return res
   }, [])
 
-  // 统一全量刷新：MUG 资产 + MUG 机台 + TCG 专区状态并行获取
+  // 统一全量刷新：MUG 资产 + MUG 机台 + TCG 专区状态并行获取（任意接口失败均能穿透报错）
   const refreshAllData = useCallback(async () => {
-    return Promise.all([
+    const results = await Promise.allSettled([
       authStore.refreshAvailable(),
       loadDevices(),
       loadTcgStatus(),
     ])
+    const rejected = results.filter((r) => r.status === 'rejected')
+    if (rejected.length > 0) {
+      const firstErrMsg = rejected[0].reason?.message || '部分数据同步失败'
+      throw new Error(firstErrMsg)
+    }
   }, [loadDevices, loadTcgStatus])
 
-  // 手动/事件同步可用数据
-  const handleRefresh = useCallback(async () => {
-    showLoading('同步数据中...')
+  // 静默同步可用数据（用于初始加载与切前台）
+  const silentRefresh = useCallback(async () => {
     try {
       await refreshAllData()
-      showSuccess('已同步')
     } catch (e) {
-      showError(e.message || '同步失败')
+      showError(e.message || '数据加载失败')
     }
-  }, [refreshAllData, showLoading, showSuccess, showError])
+  }, [refreshAllData, showError])
 
   // 初始化与登录
   useEffect(() => {
@@ -254,23 +249,23 @@ export default function IndexPage() {
           setBanMsg(currentUser.ban_msg || '您的账号已被封禁')
           setBanModalVisible(true)
         } else {
-          await handleRefresh()
+          await silentRefresh()
         }
       } catch (e) {
-        console.error('初始化登录失败:', e)
+        showError(e.message || '登录失败')
       }
     }
     init()
 
     const onRefreshEvent = () => {
-      handleRefresh()
+      silentRefresh()
     }
     Taro.eventCenter.on('refreshData', onRefreshEvent)
 
     return () => {
       Taro.eventCenter.off('refreshData', onRefreshEvent)
     }
-  }, [handleRefresh])
+  }, [silentRefresh, showError])
 
   useDidShow(() => {
     if (isFirstShowRef.current) {
@@ -278,16 +273,17 @@ export default function IndexPage() {
       return
     }
     if (authStore.token && !authStore.user?.is_ban) {
-      refreshAllData()
+      silentRefresh()
     }
   })
 
-  // 原生整页面下拉刷新：严格等待 MUG 资产、街机机台、TCG 状态全部完成，再平滑收起下拉动画
+  // 原生整页面下拉刷新：严格等待 MUG 资产、街机机台、TCG 状态全部完成，成功给出轻提示，失败明确弹窗
   usePullDownRefresh(async () => {
     try {
       await refreshAllData()
+      showSuccess('刷新成功')
     } catch (e) {
-      console.error('下拉同步失败:', e)
+      showError(e.message || '刷新失败')
     } finally {
       Taro.stopPullDownRefresh()
     }

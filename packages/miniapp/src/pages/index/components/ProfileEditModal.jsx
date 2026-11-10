@@ -13,6 +13,9 @@ export default function ProfileEditModal({
   onChooseAvatar,
   onSave,
 }) {
+  // 未激活展示时彻底卸载，避免 iOS 下原生 Input 组件 placeholder 穿透显示在首页
+  if (!visible) return null
+
   return (
     <AtModal isOpened={visible} onClose={onClose} closeOnClickOverlay={false}>
       <AtModalHeader>编辑玩家档案</AtModalHeader>
