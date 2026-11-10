@@ -78,6 +78,16 @@ export function dateOffsetDays(days) {
   return dayjs().tz(TZ).add(days, 'day').format('YYYY-MM-DD');
 }
 
+/** 当天起始时间 YYYY-MM-DD 00:00:00 */
+export function startOfDayStr(d = new Date()) {
+  return dayjs(d).tz(TZ).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+}
+
+/** 当月起始时间 YYYY-MM-01 00:00:00 */
+export function startOfMonthStr(d = new Date()) {
+  return dayjs(d).tz(TZ).startOf('month').format('YYYY-MM-DD HH:mm:ss');
+}
+
 export function now() {
   return dateTimeStr();
 }
