@@ -58,17 +58,10 @@ export default function AdminUserPage() {
   useEffect(() => {
     async function init() {
       await authStore.login()
-      if (!authStore.userInfo?.is_admin) {
-        showError('无管理员权限')
-        setTimeout(() => {
-          Taro.reLaunch({ url: '/pages/index/index' })
-        }, 1200)
-        return
-      }
       await loadData()
     }
     init()
-  }, [loadData, showError])
+  }, [loadData])
 
   // 保存用户基本资料
   const handleSave = async () => {

@@ -146,17 +146,6 @@ export default function AdminIndexPage() {
   useEffect(() => {
     async function init() {
       await authStore.login()
-      if (!authStore.userInfo?.is_admin) {
-        Taro.showModal({
-          title: '访问受限',
-          content: '当前账号暂无管理权限',
-          showCancel: false,
-          success: () => {
-            Taro.reLaunch({ url: '/pages/index/index' })
-          },
-        })
-        return
-      }
       loadActiveSessions()
     }
     init()
