@@ -134,11 +134,6 @@ export default function BuyPage() {
             <Text className='num'>{available.balance || '0.00'}</Text>
           </View>
         </View>
-        {available.arcade_days > 0 && (
-          <View className='vip-tag'>
-            <Text>音游畅玩剩余 {available.arcade_days} 天</Text>
-          </View>
-        )}
       </View>
 
       {/* 充值卡片 */}
@@ -179,12 +174,12 @@ export default function BuyPage() {
         </View>
       </View>
 
-      {/* 优惠活动与机厅特惠 */}
+      {/* 优惠活动 */}
       {events && events.length > 0 && (
         <View className='events-section'>
           <View className='section-title'>
             <Text className='icon'>🎁</Text>
-            <Text>机厅特惠活动</Text>
+            <Text>特惠活动</Text>
           </View>
 
           <View className='event-cards-wrap'>
