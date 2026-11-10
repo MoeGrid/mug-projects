@@ -164,7 +164,7 @@ export default function CardPassSection({
 
     showDialog({
       title: hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡',
-      content: `确认办理 30 天 TCG 畅玩月卡？将从账户余额扣除 ¥${pricing.month_price}，开通后 30 天内每日进店均免扣费！当前可用余额 ¥${currentBalance.toFixed(2)}。`,
+      content: `确认${hasMonthlyPass ? '续费' : '办理'} 30 天 TCG 畅玩月卡？将从账户余额扣除 ¥${pricing.month_price}，生效期内每日进店均免扣费！当前可用余额 ¥${currentBalance.toFixed(2)}。`,
       confirmText: hasMonthlyPass ? '确认续费' : '确认开通',
       cancelText: '取消',
       onConfirm: async () => {
@@ -194,7 +194,7 @@ export default function CardPassSection({
           watermark='VIP PASS'
           icon='👑'
           days={tcgDays}
-          mainDesc='整月每日进店免扣费'
+          mainDesc='每日进店免扣费'
           subDesc='出示此页面即可直接进店'
         />
       )}
@@ -299,7 +299,7 @@ export default function CardPassSection({
 
       {/* 3. 开通 / 续费 TCG 畅玩月卡 */}
       <View className='monthly-upgrade-card'>
-        <View className='card-top-tag'>整月免扣费</View>
+        <View className='card-top-tag'>30天免扣费</View>
         <View className='upgrade-header-row'>
           <View className='upgrade-title-wrap'>
             <Text className='upgrade-main-title'>TCG 畅玩月卡 (30天)</Text>

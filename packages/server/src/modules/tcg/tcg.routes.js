@@ -216,7 +216,7 @@ tcgRouter.post('/passes/buy-monthly', async (c) => {
         tcg_days: remainingDays,
         tcg_expire_date: newExpire,
         session_activated: sessionActivated,
-        message: '月卡办理成功！未来 30 天内每日进店均免扣费',
+        message: '月卡办理成功！有效期内每日进店均免扣费',
       })
     );
   });
