@@ -24,7 +24,7 @@ export default function ArcadeConsole({
         icon='⚡'
         days={days}
         mainDesc='全机台投币免扣余额'
-        subDesc='投币免费 · 尽情畅玩'
+        subDesc='尽情畅玩'
         showWhenZero={false}
       />
 
@@ -89,33 +89,21 @@ export default function ArcadeConsole({
           <Text>音游专区到店须知</Text>
         </View>
         <View className='rule-item'>
+          <Text className='rule-badge'>离场注意</Text>
+          <Text className='rule-text'>
+            本店为无人值守空间，离开时若店内无其他人，请关闭所有机器、灯光、空调，并锁好大门。
+          </Text>
+        </View>
+        <View className='rule-item'>
           <Text className='rule-badge'>排队轮候</Text>
           <Text className='rule-text'>
-            有人等待时请自觉遵守一人一币轮换规则，投币前请确认机台空闲或与等待玩家礼貌交接。
+            有人等待时请自觉遵守一人一局轮换规则，投币前请确认机台空闲或与等待玩家礼貌交接。
           </Text>
         </View>
         <View className='rule-item'>
           <Text className='rule-badge'>爱护按键</Text>
           <Text className='rule-text'>
             机台按键与屏幕均为高灵敏精密外设，请勿用力敲击拍砸；佩戴戒指等硬物者请避免刮擦屏幕。
-          </Text>
-        </View>
-        <View className='rule-item'>
-          <Text className='rule-badge'>手套防护</Text>
-          <Text className='rule-text'>
-            触屏与滑键音游（如 maimai 等）建议佩戴白手套游玩；前台备有消毒湿巾与酒精，欢迎随时取用。
-          </Text>
-        </View>
-        <View className='rule-item'>
-          <Text className='rule-badge'>耳机插孔</Text>
-          <Text className='rule-text'>
-            机台支持 3.5mm 标准耳机插孔，建议自备耳机获得更佳听感；离场时请随身带好手机、卡包等随身财物。
-          </Text>
-        </View>
-        <View className='rule-item'>
-          <Text className='rule-badge'>离场关照</Text>
-          <Text className='rule-text'>
-            本店为无人值守空间，离开时若店内无其他人，请关闭所有机器、灯光、空调，并锁好大门。
           </Text>
         </View>
       </View>

@@ -3,6 +3,7 @@ import { authStore } from '@/stores/auth.js'
 import { joinUrl } from '@/utils/misc.js'
 
 export const baseUrl = 'https://v2.mug.moegrid.com'
+// export const baseUrl = 'http://192.168.31.100:3000'
 
 // 无需预检 Token 的白名单路径（防止递归死循环）
 const NO_AUTH_PATHS = ['/api/v1/auth/wechat-login']

@@ -195,6 +195,7 @@ export default function CardPassSection({
           icon='👑'
           days={tcgDays}
           mainDesc='每日进店免扣费'
+          subDesc='尽情畅玩'
         />
       )}
 
@@ -308,21 +309,21 @@ export default function CardPassSection({
           <Text>卡牌专区到店须知</Text>
         </View>
         <View className='rule-item'>
+          <Text className='rule-badge'>离场须知</Text>
+          <Text className='rule-text'>
+            本店为无人值守空间，离开时若店内无其他人，请关闭所有机器、灯光、空调，并锁好大门。
+          </Text>
+        </View>
+        <View className='rule-item'>
           <Text className='rule-badge'>自动截止</Text>
           <Text className='rule-text'>
-            每日畅玩统一于次日早 06:00 自动到期结束，期间自由畅玩，无需手动下机。
+            每日畅玩统一于次日早 06:00 自动到期结束，期间自由畅玩。
           </Text>
         </View>
         <View className='rule-item'>
           <Text className='rule-badge'>环境维护</Text>
           <Text className='rule-text'>
             请爱护公共桌椅设施与对战环境，离场前请带走个人随身物品与垃圾，保持整洁。
-          </Text>
-        </View>
-        <View className='rule-item'>
-          <Text className='rule-badge'>离场关照</Text>
-          <Text className='rule-text'>
-            本店为无人值守空间，离开时若店内无其他人，请关闭所有机器、灯光、空调，并锁好大门。
           </Text>
         </View>
       </View>
