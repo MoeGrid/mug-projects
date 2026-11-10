@@ -249,7 +249,7 @@ export default function CardPassSection({
             >
               <View className='btn-main-title'>
                 <Text className='bolt-icon'>⚡</Text>
-                <Text>{hasMonthlyPass ? '开启今日畅玩 (免扣费)' : '开启今日畅玩'}</Text>
+                <Text>{hasMonthlyPass ? '开启今日畅玩' : '开启今日畅玩'}</Text>
               </View>
             </View>
           </View>

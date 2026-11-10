@@ -161,18 +161,17 @@
       }
     }
 
-    /* 已开通/畅玩中状态 */
+    /* 已开通/畅玩中状态（统一清爽白底风格） */
     &.console-card-active {
-      background: linear-gradient(135deg, #13141f 0%, #1e1e30 60%, #162a2a 100%);
-      border: 2px solid rgba(46, 213, 115, 0.45);
-      box-shadow: 0 16px 36px rgba(22, 42, 42, 0.35);
-      color: #ffffff;
+      background: #ffffff;
+      border: 2px solid rgba(46, 213, 115, 0.4);
+      box-shadow: 0 10px 30px rgba(46, 213, 115, 0.08);
 
       .console-header {
-        border-bottom-color: rgba(255, 255, 255, 0.1);
+        border-bottom: 1px dashed #eef1f6;
 
         .console-title {
-          color: #ffffff;
+          color: #1e1e30;
         }
       }
 
@@ -183,8 +182,8 @@
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: rgba(46, 213, 115, 0.12);
-          border: 1px solid rgba(46, 213, 115, 0.3);
+          background: linear-gradient(135deg, rgba(46, 213, 115, 0.07) 0%, rgba(46, 213, 115, 0.14) 100%);
+          border: 1px solid rgba(46, 213, 115, 0.25);
           border-radius: 20px;
           padding: 24px;
           margin-bottom: 20px;
@@ -196,24 +195,26 @@
             .banner-title {
               font-size: 32px;
               font-weight: 800;
-              color: #2ed573;
+              color: #20bf6b;
               letter-spacing: 0.5px;
             }
 
             .banner-sub {
               font-size: 21px;
-              color: rgba(255, 255, 255, 0.75);
+              color: #57606f;
               margin-top: 6px;
             }
           }
 
           .expire-badge {
-            background: rgba(255, 255, 255, 0.12);
+            background: #ffffff;
+            border: 1px solid rgba(46, 213, 115, 0.35);
             padding: 8px 16px;
             border-radius: 14px;
             font-size: 20px;
-            color: #ffffff;
-            font-weight: 600;
+            color: #20bf6b;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(46, 213, 115, 0.1);
           }
         }
 
@@ -222,7 +223,7 @@
           align-items: center;
           justify-content: center;
           padding: 16px;
-          background: rgba(255, 255, 255, 0.05);
+          background: #f8f9fe;
           border-radius: 16px;
 
           .clock-icon {
@@ -232,7 +233,7 @@
 
           .auto-desc {
             font-size: 21px;
-            color: rgba(255, 255, 255, 0.7);
+            color: #747d8c;
           }
         }
       }
