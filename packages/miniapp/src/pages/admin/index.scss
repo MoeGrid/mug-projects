@@ -332,12 +332,15 @@
             flex: 1;
             margin-left: 20px;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
 
             .meta-row {
               display: flex;
               align-items: center;
               gap: 12px;
-              margin-bottom: 6px;
+              margin-bottom: 2px;
 
               .meta-name {
                 font-size: 28px;
@@ -354,23 +357,28 @@
               }
             }
 
+            .meta-sub-row {
+              display: flex;
+              align-items: center;
+            }
+
             .meta-remark {
+              display: block;
               font-size: 24px;
               color: #475569;
-              margin-bottom: 4px;
             }
 
             .meta-time {
+              display: block;
               font-size: 22px;
               color: #94a3b8;
             }
 
             .meta-sn {
+              display: block;
               font-size: 20px;
-              color: #cbd5e1;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
+              color: #94a3b8;
+              word-break: break-all;
             }
           }
 

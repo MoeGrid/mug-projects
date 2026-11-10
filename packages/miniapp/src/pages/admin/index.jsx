@@ -398,9 +398,13 @@ export default function AdminIndexPage() {
                             <Text className='meta-name'>{item.nickname || '微信用户'}</Text>
                             <Text className='meta-uid'>UID:{item.user_id}</Text>
                           </View>
-                          <Text className='meta-time'>{item.pay_time || '-'}</Text>
+                          <View className='meta-sub-row'>
+                            <Text className='meta-time'>{item.pay_time || '-'}</Text>
+                          </View>
                           {item.we_order_id && (
-                            <Text className='meta-sn'>单号: {item.we_order_id}</Text>
+                            <View className='meta-sub-row'>
+                              <Text className='meta-sn'>单号: {item.we_order_id}</Text>
+                            </View>
                           )}
                         </View>
                         <View className='item-amount recharge'>
@@ -442,8 +446,12 @@ export default function AdminIndexPage() {
                             <Text className='meta-name'>{item.nickname || '微信用户'}</Text>
                             <Text className='meta-uid'>UID:{item.user_id}</Text>
                           </View>
-                          <Text className='meta-remark'>{item.remark || '余额扣除'}</Text>
-                          <Text className='meta-time'>{item.create_time || '-'}</Text>
+                          <View className='meta-sub-row'>
+                            <Text className='meta-remark'>{item.remark || '余额扣除'}</Text>
+                          </View>
+                          <View className='meta-sub-row'>
+                            <Text className='meta-time'>{item.create_time || '-'}</Text>
+                          </View>
                         </View>
                         <View className='item-amount consume'>
                           <Text className='amount-text'>-¥{item.cost}</Text>
