@@ -45,7 +45,7 @@ export default function PassCard({
       <View className='vip-body'>
         <View className='vip-privilege-info'>
           <Text className='privilege-highlight'>{mainDesc}</Text>
-          {subDesc ? <Text className='vip-privilege-detail'>{subDesc}</Text> : null}
+          {subDesc ? <Text className='privilege-detail'>{subDesc}</Text> : null}
         </View>
 
         <View className='vip-days-box'>

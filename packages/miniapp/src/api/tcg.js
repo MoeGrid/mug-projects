@@ -22,14 +22,6 @@ export function buyTcgMonthlyPass() {
 }
 
 /**
- * 兼容旧充值接口
- * @param {'day' | 'monthly'} planId
- */
-export function rechargeTcgPass(planId) {
-  return post('/api/v1/tcg/passes/recharge', { planId })
-}
-
-/**
  * 获取 TCG 卡牌赛事与活动
  */
 export function getTcgEvents() {
