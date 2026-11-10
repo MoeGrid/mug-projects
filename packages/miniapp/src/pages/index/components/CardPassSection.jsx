@@ -195,7 +195,6 @@ export default function CardPassSection({
           icon='👑'
           days={tcgDays}
           mainDesc='每日进店免扣费'
-          subDesc='出示此页面即可直接进店'
         />
       )}
 
@@ -257,12 +256,7 @@ export default function CardPassSection({
           /* 已开通状态：准入凭证 */
           <View className='active-content'>
             <View className='active-banner'>
-              <View className='banner-left'>
-                <Text className='banner-title'>
-                  {hasMonthlyPass ? '👑 月卡生效中 · 进店免扣费' : '✨ 今日已开通 · 进店畅玩'}
-                </Text>
-                <Text className='banner-sub'>出示本页面即可直接进店畅玩</Text>
-              </View>
+              <Text className='banner-title'>✨ 今日已开通 · 进店畅玩</Text>
               <View className='expire-badge'>
                 <Text>有效至明日 06:00</Text>
               </View>

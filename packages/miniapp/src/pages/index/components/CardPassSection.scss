@@ -188,22 +188,11 @@
           padding: 24px;
           margin-bottom: 20px;
 
-          .banner-left {
-            display: flex;
-            flex-direction: column;
-
-            .banner-title {
-              font-size: 32px;
-              font-weight: 800;
-              color: #20bf6b;
-              letter-spacing: 0.5px;
-            }
-
-            .banner-sub {
-              font-size: 21px;
-              color: #57606f;
-              margin-top: 6px;
-            }
+          .banner-title {
+            font-size: 30px;
+            font-weight: 800;
+            color: #20bf6b;
+            letter-spacing: 0.5px;
           }
 
           .expire-badge {
