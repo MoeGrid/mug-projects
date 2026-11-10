@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, Button } from '@tarojs/components'
-import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
 import { getTcgPassOptions, activateTcgPass, buyTcgMonthlyPass } from '@/api'
 import { authStore } from '@/stores/auth'
 import './CardPassSection.scss'
@@ -16,7 +15,6 @@ export default function CardPassSection({
   showError,
 }) {
   const [pricing, setPricing] = useState({ day_price: 15, month_price: 180 })
-  const [monthlyModalVisible, setMonthlyModalVisible] = useState(false)
   const [activating, setActivating] = useState(false)
 
   // 动态加载数据库 setting 中配置的最新价格
@@ -67,7 +65,7 @@ export default function CardPassSection({
     if (!isBalanceEnoughForDay) {
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开启今日畅玩（需 ¥${pricing.day_price}）。是否前往充值？`,
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开启今日专座畅玩（需 ¥${pricing.day_price}）。是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -106,7 +104,7 @@ export default function CardPassSection({
     if (currentBalance < pricing.month_price) {
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开通月卡（需 ¥${pricing.month_price}）。是否前往充值？`,
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以办理月卡（需 ¥${pricing.month_price}）。是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -115,23 +113,26 @@ export default function CardPassSection({
       })
       return
     }
-    setMonthlyModalVisible(true)
-  }
 
-  const handleConfirmMonthlyPass = async () => {
-    try {
-      showLoading('正在办理月卡...')
-      const res = await buyTcgMonthlyPass()
-      await authStore.refreshAvailable()
-      setMonthlyModalVisible(false)
-      showSuccess(res.message || '月卡开通成功！未来 30 天每日畅玩免扣费')
-      if (onRechargeSuccess) {
-        onRechargeSuccess(res)
-      }
-    } catch (e) {
-      setMonthlyModalVisible(false)
-      showError(e.message || '办理失败，请稍后重试')
-    }
+    showDialog({
+      title: hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡',
+      content: `确认办理 30 天 TCG 畅玩月卡？将从账户余额扣除 ¥${pricing.month_price}，未来整整 30 天每日畅玩免扣费！当前可用余额 ¥${currentBalance.toFixed(2)}。`,
+      confirmText: hasMonthlyPass ? '确认续费' : '确认开通',
+      cancelText: '取消',
+      onConfirm: async () => {
+        try {
+          showLoading('正在办理月卡...')
+          const res = await buyTcgMonthlyPass()
+          await authStore.refreshAvailable()
+          showSuccess(res.message || '月卡办理成功！未来 30 天每日畅玩免扣费')
+          if (onRechargeSuccess) {
+            onRechargeSuccess(res)
+          }
+        } catch (e) {
+          showError(e.message || '办理失败，请稍后重试')
+        }
+      },
+    })
   }
 
   return (
@@ -367,64 +368,6 @@ export default function CardPassSection({
           </Text>
         </View>
       </View>
-
-      {/* 5. 月卡开通确认弹窗 */}
-      <AtModal
-        isOpened={monthlyModalVisible}
-        closeOnClickOverlay={false}
-        onClose={() => setMonthlyModalVisible(false)}
-      >
-        <AtModalHeader>
-          {hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡'}
-        </AtModalHeader>
-        <AtModalContent>
-          <View className='buy-pass-modal-content'>
-            <View className='modal-plan-header'>
-              <Text className='plan-title-large'>TCG 畅玩月卡 (30天)</Text>
-              <View className='price-highlight'>
-                <Text className='symbol'>¥</Text>
-                <Text className='amount'>{pricing.month_price}</Text>
-                <Text className='unit'>/30天</Text>
-              </View>
-            </View>
-
-            <View className='modal-balance-row'>
-              <Text className='label'>当前账户可用余额：</Text>
-              <Text className='val'>¥{available?.balance || '0.00'}</Text>
-            </View>
-
-            <View className='modal-privileges-box'>
-              <Text className='box-title'>包含专属特权：</Text>
-              <View className='privilege-line'>
-                <Text className='check-icon'>✓</Text>
-                <Text className='privilege-text'>未来 30 天每日畅玩免扣费</Text>
-              </View>
-              <View className='privilege-line'>
-                <Text className='check-icon'>✓</Text>
-                <Text className='privilege-text'>营业时间内随时自由进出专座</Text>
-              </View>
-              <View className='privilege-line'>
-                <Text className='check-icon'>✓</Text>
-                <Text className='privilege-text'>免费借用店内高品质对战卡垫</Text>
-              </View>
-              <View className='privilege-line'>
-                <Text className='check-icon'>✓</Text>
-                <Text className='privilege-text'>统一每天早 06:00 自动结算，无忧畅玩</Text>
-              </View>
-            </View>
-
-            <Text className='modal-tip-text'>
-              * 确认开通将扣除账户余额 ¥{pricing.month_price}，立即生效 30 天月度特权，整月每天进店均无需再扣余额。
-            </Text>
-          </View>
-        </AtModalContent>
-        <AtModalAction>
-          <Button onClick={() => setMonthlyModalVisible(false)}>取消</Button>
-          <Button onClick={handleConfirmMonthlyPass}>
-            {hasMonthlyPass ? '确认续费' : '确认开通'}
-          </Button>
-        </AtModalAction>
-      </AtModal>
     </View>
   )
 }
