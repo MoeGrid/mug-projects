@@ -122,8 +122,8 @@ export default function AdminUserPage() {
   if (!entity) return null
 
   // 快捷金额/天数填充
-  const presetBalance = [50, 100, 200, -15, -30, -50]
-  const presetDays = [30, 60, 90, -7, -30]
+  const presetBalance = [10, 20, 50, 100, -10, -20, -50, -100]
+  const presetDays = [1, 7, 30, -1, -7, -30]
 
   return (
     <View className='page-admin-user'>
@@ -348,9 +348,9 @@ export default function AdminUserPage() {
 
             <View className='input-row'>
               <Input
-                type='digit'
+                type='text'
                 className='modal-input'
-                placeholder='请输入调整数值'
+                placeholder='请输入调整数值（如 +10 或 -10）'
                 value={adjustVal}
                 onInput={(e) => setAdjustVal(e.detail.value)}
               />
@@ -363,7 +363,7 @@ export default function AdminUserPage() {
                 {(modalType === 1 ? presetBalance : presetDays).map((val) => (
                   <View
                     key={val}
-                    className='preset-btn'
+                    className={`preset-btn ${val > 0 ? 'positive' : 'negative'}`}
                     onClick={() => setAdjustVal(String(val))}
                   >
                     <Text className='preset-text'>
