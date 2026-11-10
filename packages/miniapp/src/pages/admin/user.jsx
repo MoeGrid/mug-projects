@@ -324,40 +324,42 @@ export default function AdminUserPage() {
         </View>
       )}
 
-      {/* 资产加减调配弹窗 */}
-      <AtModal
-        isOpened={modalType !== null}
-        onClose={closeAdjustModal}
-      >
-        <AtModalHeader>
-          {modalType === 1 && '调配账户余额 (元)'}
-          {modalType === 2 && '调配 MUG 畅玩天数'}
-          {modalType === 3 && '调配 TCG 月卡天数'}
-        </AtModalHeader>
-        <AtModalContent>
-          <View className='modal-adjust-body'>
-            <Text className='modal-tip'>
-              {modalType === 1 && '输入正数加款，输入负数扣款（如 50 或 -20）'}
-              {modalType === 2 && '输入正数加天数，输入负数减天数（如 30 或 -7）'}
-              {modalType === 3 && '输入正数加天数，输入负数减天数（如 30 或 -7）'}
-            </Text>
+      {/* 资产加减调配弹窗（条件渲染，避免 iOS 下隐藏状态时 Input 穿透） */}
+      {modalType !== null && (
+        <AtModal
+          isOpened
+          onClose={closeAdjustModal}
+        >
+          <AtModalHeader>
+            {modalType === 1 && '调配账户余额 (元)'}
+            {modalType === 2 && '调配 MUG 畅玩天数'}
+            {modalType === 3 && '调配 TCG 月卡天数'}
+          </AtModalHeader>
+          <AtModalContent>
+            <View className='modal-adjust-body'>
+              <Text className='modal-tip'>
+                {modalType === 1 && '输入正数加款，输入负数扣款（如 50 或 -20）'}
+                {modalType === 2 && '输入正数加天数，输入负数减天数（如 30 或 -7）'}
+                {modalType === 3 && '输入正数加天数，输入负数减天数（如 30 或 -7）'}
+              </Text>
 
-            <View className='input-row'>
-              <Input
-                type='text'
-                className='modal-input'
-                placeholder='请输入数值（正数加，负数减）'
-                value={adjustVal}
-                onInput={(e) => setAdjustVal(e.detail.value)}
-              />
+              <View className='input-row'>
+                <Input
+                  type='text'
+                  className='modal-input'
+                  placeholder='请输入数值（正数加，负数减）'
+                  value={adjustVal}
+                  onInput={(e) => setAdjustVal(e.detail.value)}
+                />
+              </View>
             </View>
-          </View>
-        </AtModalContent>
-        <AtModalAction>
-          <Button onClick={closeAdjustModal}>取消</Button>
-          <Button onClick={doAdjust}>确认调配</Button>
-        </AtModalAction>
-      </AtModal>
+          </AtModalContent>
+          <AtModalAction>
+            <Button onClick={closeAdjustModal}>取消</Button>
+            <Button onClick={doAdjust}>确认调配</Button>
+          </AtModalAction>
+        </AtModal>
+      )}
 
       {/* 统一轻提示 */}
       <AtToast {...toastProps} />
