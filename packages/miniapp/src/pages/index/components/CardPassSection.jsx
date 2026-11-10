@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { getTcgPassOptions, activateTcgPass, buyTcgMonthlyPass } from '@/api'
@@ -9,6 +9,7 @@ import './CardPassSection.scss'
 export default function CardPassSection({
   user,
   available,
+  refreshTrigger,
   onRechargeSuccess,
   showDialog,
   showLoading,
@@ -24,7 +25,7 @@ export default function CardPassSection({
   const [activating, setActivating] = useState(false)
 
   // 动态加载数据库中的价格配置与今日上机状态
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await getTcgPassOptions()
       if (res) {
@@ -43,11 +44,20 @@ export default function CardPassSection({
     } catch (e) {
       // 保持当前状态
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchStatus()
-  }, [])
+
+    const onRefreshEvent = () => {
+      fetchStatus()
+    }
+    Taro.eventCenter.on('refreshData', onRefreshEvent)
+
+    return () => {
+      Taro.eventCenter.off('refreshData', onRefreshEvent)
+    }
+  }, [fetchStatus, refreshTrigger])
 
   // 兜底结合 store 中的数据（以接口返回的 status 为准）
   const tcgDays = status.hasMonthlyPass ? status.tcgDays : Number(available?.tcg_days || 0)

@@ -39,6 +39,7 @@ export default function IndexPage() {
 
   // 双核模式：'arcade' (街机音游) | 'card' (卡牌通行证)
   const [activeMode, setActiveMode] = useState(settingStore.state.mainMode || 'arcade')
+  const [tcgRefreshKey, setTcgRefreshKey] = useState(0)
 
   useEffect(() => {
     return authStore.subscribe((state) => {
@@ -51,6 +52,9 @@ export default function IndexPage() {
   const handleSwitchMode = (mode) => {
     setActiveMode(mode)
     settingStore.setMainMode(mode)
+    if (mode === 'card') {
+      setTcgRefreshKey((k) => k + 1)
+    }
   }
 
   // 设备列表与选中状态 (街机模式)
@@ -193,6 +197,7 @@ export default function IndexPage() {
     showLoading('同步数据中...')
     try {
       await Promise.all([authStore.refreshAvailable(), loadDevices()])
+      setTcgRefreshKey((k) => k + 1)
       showSuccess('已同步')
     } catch (e) {
       showError(e.message || '同步失败')
@@ -233,6 +238,7 @@ export default function IndexPage() {
     }
     if (authStore.token && !authStore.user?.is_ban) {
       authStore.refreshAvailable()
+      setTcgRefreshKey((k) => k + 1)
     }
   })
 
@@ -240,6 +246,7 @@ export default function IndexPage() {
   usePullDownRefresh(async () => {
     try {
       await Promise.all([authStore.refreshAvailable(), loadDevices()])
+      setTcgRefreshKey((k) => k + 1)
     } catch (e) {
       console.error('下拉同步失败:', e)
     } finally {
@@ -441,6 +448,7 @@ export default function IndexPage() {
         <CardPassSection
           user={user}
           available={available}
+          refreshTrigger={tcgRefreshKey}
           showDialog={showDialog}
           showLoading={showLoading}
           showSuccess={showSuccess}
