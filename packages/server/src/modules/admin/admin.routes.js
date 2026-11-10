@@ -197,19 +197,9 @@ adminRouter.get('/tcg/active-sessions', async (c) => {
     .orderBy('r.id', 'desc')
     .execute();
 
-  // 避免同一用户重复项，按 user_id 去重保留最新有效上机记录
-  const uniqueList = [];
-  const seenUserIds = new Set();
-  for (const item of list) {
-    if (!seenUserIds.has(item.user_id)) {
-      seenUserIds.add(item.user_id);
-      uniqueList.push(item);
-    }
-  }
-
   return c.json(
     ok(
-      uniqueList.map((item) => {
+      list.map((item) => {
         const monthlyDays = daysFromExpire(item.tcg_expire_date);
         return {
           session_id: item.session_id,
@@ -351,13 +341,9 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
     if (!user) throw new AppError('用户不存在!');
 
     if (type === 1) {
-      // 1. 余额调配（支持加款与扣款，严格校验防超扣，确保账实严格相符）
+      // 1. 余额调配（支持加款与扣款，允许扣成负数如罚款等）
       const numMoney = toMoney(num);
       if (numMoney === 0) throw new AppError('调配金额不能为0');
-
-      if (numMoney < 0 && addMoney(user.balance, numMoney) < 0) {
-        throw new AppError(`扣减金额超过用户当前余额（当前余额仅 ¥${toMoney(user.balance)}）`);
-      }
 
       const balance = addMoney(user.balance, numMoney);
       await trx.updateTable('mug_user').set({ balance, update_time: tsNow() }).where('id', '=', user.id).execute();
@@ -373,11 +359,6 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
 
     if (type === 2) {
       // 2. 调配音游 MUG 畅玩天数：按次日早 6 点结算与累加/扣减
-      const currentDays = daysFromExpire(user.arcade_expire_date);
-      if (num < 0 && currentDays <= 0) {
-        throw new AppError('用户当前未开通音游畅玩或已过期，无法扣减天数');
-      }
-
       const newExpire = calculateExpire(user.arcade_expire_date, num);
       await trx.updateTable('mug_user').set({
         arcade_expire_date: newExpire,
@@ -389,11 +370,6 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
 
     if (type === 3) {
       // 3. 调配卡牌 TCG 通行证天数：按次日早 6 点结算与累加/扣减
-      const currentDays = daysFromExpire(user.tcg_expire_date);
-      if (num < 0 && currentDays <= 0) {
-        throw new AppError('用户当前未开通 TCG 月卡或已过期，无法扣减天数');
-      }
-
       const newExpire = calculateExpire(user.tcg_expire_date, num);
       await trx.updateTable('mug_user').set({
         tcg_expire_date: newExpire,

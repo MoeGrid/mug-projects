@@ -188,54 +188,5 @@
         color: #0f172a;
       }
     }
-
-    .quick-presets {
-      margin-top: 24px;
-
-      .presets-label {
-        display: block;
-        font-size: 22px;
-        color: #94a3b8;
-        margin-bottom: 12px;
-      }
-
-      .preset-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-
-        .preset-btn {
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          padding: 12px 20px;
-          transition: all 0.2s;
-
-          .preset-text {
-            font-size: 26px;
-            font-weight: 600;
-            color: #334155;
-          }
-
-          &.positive {
-            background: #f0fdf4;
-            border-color: #bbf7d0;
-
-            .preset-text {
-              color: #16a34a;
-            }
-          }
-
-          &.negative {
-            background: #fef2f2;
-            border-color: #fecaca;
-
-            .preset-text {
-              color: #dc2626;
-            }
-          }
-        }
-      }
-    }
   }
 }
