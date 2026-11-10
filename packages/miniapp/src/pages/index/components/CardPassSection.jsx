@@ -241,20 +241,6 @@ export default function CardPassSection({
               </View>
             </View>
 
-            {!hasMonthlyPass && (
-              <View className='balance-indicator-row'>
-                <Text className='balance-label'>当前账户可用余额：</Text>
-                <Text
-                  className={`balance-val ${
-                    isBalanceEnoughForDay ? 'sufficient' : 'insufficient'
-                  }`}
-                >
-                  ¥{available?.balance || '0.00'}
-                  {!isBalanceEnoughForDay && ' (余额不足)'}
-                </Text>
-              </View>
-            )}
-
             <View
               className={`start-play-main-btn btn-press-effect ${
                 activating ? 'disabled' : ''
@@ -265,11 +251,6 @@ export default function CardPassSection({
                 <Text className='bolt-icon'>⚡</Text>
                 <Text>{hasMonthlyPass ? '开启今日畅玩 (免扣费)' : '开启今日畅玩'}</Text>
               </View>
-              <Text className='btn-sub-tip'>
-                {hasMonthlyPass
-                  ? '月卡免扣余额 · 开通后即可进店畅玩'
-                  : `扣除余额 ¥${pricing.day_price} · 开通后即可进店畅玩`}
-              </Text>
             </View>
           </View>
         ) : (
@@ -321,9 +302,7 @@ export default function CardPassSection({
           onClick={handleOpenMonthlyModal}
         >
           <Text>
-            {hasMonthlyPass
-              ? `续费 30 天月卡 (¥${pricing.month_price})`
-              : `开通 30 天畅玩月卡 (¥${pricing.month_price})`}
+            {hasMonthlyPass ? '续费 30 天月卡' : '立即开通月卡'}
           </Text>
         </View>
       </View>
