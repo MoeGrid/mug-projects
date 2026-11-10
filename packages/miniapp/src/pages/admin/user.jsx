@@ -58,10 +58,17 @@ export default function AdminUserPage() {
   useEffect(() => {
     async function init() {
       await authStore.login()
+      if (!authStore.userInfo?.is_admin) {
+        showError('无管理员权限')
+        setTimeout(() => {
+          Taro.reLaunch({ url: '/pages/index/index' })
+        }, 1200)
+        return
+      }
       await loadData()
     }
     init()
-  }, [loadData])
+  }, [loadData, showError])
 
   // 保存用户基本资料
   const handleSave = async () => {
@@ -364,7 +371,7 @@ export default function AdminUserPage() {
                   <View
                     key={val}
                     className={`preset-btn ${val > 0 ? 'positive' : 'negative'}`}
-                    onClick={() => setAdjustVal(String(val))}
+                    onClick={() => setAdjustVal(val > 0 ? `+${val}` : `${val}`)}
                   >
                     <Text className='preset-text'>
                       {val > 0 ? `+${val}` : `${val}`}

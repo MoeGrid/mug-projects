@@ -146,6 +146,17 @@ export default function AdminIndexPage() {
   useEffect(() => {
     async function init() {
       await authStore.login()
+      if (!authStore.userInfo?.is_admin) {
+        Taro.showModal({
+          title: '访问受限',
+          content: '当前账号暂无管理权限',
+          showCancel: false,
+          success: () => {
+            Taro.reLaunch({ url: '/pages/index/index' })
+          },
+        })
+        return
+      }
       loadActiveSessions()
     }
     init()
@@ -344,7 +355,7 @@ export default function AdminIndexPage() {
             {/* 核心指标四宫格 */}
             <View className='stat-grid'>
               <View className='stat-card recharge-today'>
-                <Text className='stat-label'>今日实付充值</Text>
+                <Text className='stat-label'>今日累计充值</Text>
                 <Text className='stat-val'>¥{financeSummary.today_recharge}</Text>
                 <Text className='stat-tag'>微信支付流水</Text>
               </View>
@@ -354,7 +365,7 @@ export default function AdminIndexPage() {
                 <Text className='stat-tag'>微信支付流水</Text>
               </View>
               <View className='stat-card consume-today'>
-                <Text className='stat-label'>今日消费扣减</Text>
+                <Text className='stat-label'>今日累计消费</Text>
                 <Text className='stat-val'>¥{financeSummary.today_consume}</Text>
                 <Text className='stat-tag'>投币/天卡/月卡</Text>
               </View>
