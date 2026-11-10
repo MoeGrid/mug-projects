@@ -436,9 +436,10 @@ export default function IndexPage() {
         />
       )}
 
-      {/* 4. 模式 B: 卡牌通行证与门票 */}
+      {/* 4. 模式 B: 卡牌专区开台与通行 */}
       {user && !user.is_ban && activeMode === 'card' && (
         <CardPassSection
+          user={user}
           available={available}
           showDialog={showDialog}
           showLoading={showLoading}

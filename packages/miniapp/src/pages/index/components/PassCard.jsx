@@ -9,10 +9,12 @@ export default function PassCard({
   watermark = 'PASS',
   icon = '⚡',
   days = 0,
+  statusText = '',
+  daysUnit = '天剩余',
   mainDesc = '全场畅玩特权',
   subDesc = '畅玩免扣 · 尽情游玩',
   inactiveDesc = '暂未开通畅玩通行',
-  inactiveSubDesc = '按需充值天数 · 每天统一早 06:00 结算',
+  inactiveSubDesc = '按需开启畅玩 · 每天统一早 06:00 结算',
   showWhenZero = false,
   className = '',
 }) {
@@ -21,6 +23,8 @@ export default function PassCard({
   if (!isValid && !showWhenZero) {
     return null
   }
+
+  const displayStatus = statusText || (isValid ? '畅玩生效中' : '未激活')
 
   return (
     <View className={`mug-arc-pass-card ${isValid ? '' : 'pass-inactive'} ${className}`}>
@@ -34,7 +38,7 @@ export default function PassCard({
           </View>
           <View className={`pass-status ${isValid ? '' : 'inactive-status'}`}>
             {isValid && <View className='pulse-dot' />}
-            <Text>{isValid ? '畅玩生效中' : '未激活'}</Text>
+            <Text>{displayStatus}</Text>
           </View>
         </View>
 
@@ -47,7 +51,7 @@ export default function PassCard({
           {isValid && (
             <View className='days-wrap'>
               <Text className='days-num'>{days}</Text>
-              <Text className='days-unit'>天剩余</Text>
+              <Text className='days-unit'>{daysUnit}</Text>
             </View>
           )}
         </View>

@@ -1,0 +1,660 @@
+/* TCG 卡牌专区开台与通行模块样式 */
+
+.tcg-mode-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 32px;
+  gap: 24px;
+
+  /* ================= 1. 尊享月卡会员大卡 ================= */
+  .monthly-vip-card {
+    position: relative;
+    border-radius: 28px;
+    padding: 30px 26px 24px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #181926 0%, #2b2438 50%, #3d2f24 100%);
+    border: 2px solid rgba(255, 215, 0, 0.45);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    color: #ffffff;
+
+    .vip-watermark {
+      position: absolute;
+      right: -10px;
+      bottom: 4px;
+      font-size: 72px;
+      font-weight: 900;
+      font-style: italic;
+      color: rgba(255, 215, 0, 0.05);
+      pointer-events: none;
+      letter-spacing: 2px;
+    }
+
+    .vip-shimmer {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 215, 0, 0.08),
+        rgba(255, 234, 167, 0.18),
+        transparent
+      );
+      transform: skewX(-25deg);
+      animation: vipShimmer 4s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    .vip-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      .vip-brand {
+        display: flex;
+        align-items: center;
+
+        .vip-crown {
+          font-size: 36px;
+          margin-right: 12px;
+        }
+
+        .vip-brand-text {
+          display: flex;
+          flex-direction: column;
+
+          .vip-brand-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffd700;
+            letter-spacing: 1.5px;
+          }
+
+          .vip-brand-sub {
+            font-size: 19px;
+            color: rgba(255, 234, 167, 0.7);
+            margin-top: 2px;
+          }
+        }
+      }
+
+      .vip-status-badge {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 215, 0, 0.15);
+        border: 1px solid rgba(255, 215, 0, 0.5);
+        padding: 6px 16px;
+        border-radius: 20px;
+        color: #ffd700;
+        font-size: 22px;
+        font-weight: 700;
+
+        .pulse-gold-dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #ffd700;
+          margin-right: 8px;
+          box-shadow: 0 0 8px #ffd700;
+        }
+      }
+    }
+
+    .vip-body {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-top: 28px;
+
+      .vip-privilege-info {
+        display: flex;
+        flex-direction: column;
+
+        .privilege-highlight {
+          font-size: 32px;
+          font-weight: 800;
+          color: #ffffff;
+        }
+
+        .privilege-detail {
+          font-size: 21px;
+          color: rgba(255, 255, 255, 0.7);
+          margin-top: 6px;
+        }
+      }
+
+      .vip-days-box {
+        display: flex;
+        align-items: baseline;
+        background: rgba(255, 215, 0, 0.12);
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        padding: 8px 18px;
+        border-radius: 16px;
+
+        .days-val {
+          font-size: 44px;
+          font-weight: 900;
+          color: #ffd700;
+          font-family: 'DIN Alternate', sans-serif;
+        }
+
+        .days-unit {
+          font-size: 20px;
+          color: #ffeaa7;
+          margin-left: 6px;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  /* ================= 2. 今日开台畅玩控制台 (临时天卡) ================= */
+  .today-console-card {
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 30px 24px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+
+    .console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px dashed #eceef5;
+
+      .console-title-wrap {
+        display: flex;
+        align-items: center;
+
+        .console-icon {
+          font-size: 36px;
+          margin-right: 12px;
+        }
+
+        .console-title {
+          font-size: 32px;
+          font-weight: 800;
+          color: #1e1e30;
+          letter-spacing: 0.5px;
+        }
+      }
+
+      .console-status-pill {
+        display: flex;
+        align-items: center;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 21px;
+        font-weight: 700;
+
+        &.status-inactive {
+          background: #f1f2f6;
+          color: #747d8c;
+
+          .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #a4b0be;
+            margin-right: 8px;
+          }
+        }
+
+        &.status-active {
+          background: rgba(46, 213, 115, 0.15);
+          color: #2ed573;
+          border: 1px solid rgba(46, 213, 115, 0.4);
+
+          .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #2ed573;
+            margin-right: 8px;
+            box-shadow: 0 0 8px #2ed573;
+            animation: dotGlow 1.8s infinite ease-in-out;
+          }
+        }
+      }
+    }
+
+    /* 未开台状态内容 */
+    .inactive-content {
+      padding-top: 24px;
+
+      .pricing-highlight-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(135deg, #f8f9fe 0%, #f1f2fc 100%);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 20px;
+
+        .pricing-left {
+          display: flex;
+          flex-direction: column;
+
+          .pricing-label {
+            font-size: 22px;
+            color: #747d8c;
+          }
+
+          .pricing-auto-rule {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            color: #6c5ce7;
+            font-weight: 600;
+            margin-top: 6px;
+          }
+        }
+
+        .pricing-right {
+          display: flex;
+          align-items: baseline;
+
+          .currency {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ff4757;
+          }
+
+          .amount {
+            font-size: 52px;
+            font-weight: 900;
+            color: #ff4757;
+            font-family: 'DIN Alternate', sans-serif;
+            margin: 0 4px;
+          }
+
+          .period {
+            font-size: 22px;
+            color: #a4b0be;
+          }
+        }
+      }
+
+      .perks-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+
+        .perk-item {
+          display: flex;
+          align-items: center;
+          background: #f8f9fa;
+          padding: 8px 16px;
+          border-radius: 12px;
+          font-size: 21px;
+          color: #57606f;
+
+          .perk-check {
+            color: #2ed573;
+            font-weight: 700;
+            margin-right: 6px;
+          }
+        }
+      }
+
+      .balance-indicator-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 22px;
+        margin-bottom: 20px;
+        padding: 0 4px;
+
+        .balance-label {
+          color: #747d8c;
+        }
+
+        .balance-val {
+          font-weight: 700;
+          color: #2f3542;
+
+          &.sufficient {
+            color: #2ed573;
+          }
+
+          &.insufficient {
+            color: #ff4757;
+          }
+        }
+      }
+
+      .start-play-main-btn {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 24px;
+        background: linear-gradient(135deg, #6c5ce7 0%, #8553f4 100%);
+        box-shadow: 0 10px 26px rgba(108, 92, 231, 0.38);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        transition: all 0.2s ease;
+
+        .btn-main-title {
+          font-size: 34px;
+          font-weight: 800;
+          letter-spacing: 1px;
+          display: flex;
+          align-items: center;
+
+          .bolt-icon {
+            margin-right: 10px;
+            font-size: 36px;
+          }
+        }
+
+        .btn-sub-tip {
+          font-size: 20px;
+          opacity: 0.85;
+          margin-top: 6px;
+        }
+      }
+    }
+
+    /* 正在畅玩状态内容 */
+    &.console-card-active {
+      background: linear-gradient(135deg, #13141f 0%, #1e1e30 60%, #162a2a 100%);
+      border: 2px solid rgba(46, 213, 115, 0.45);
+      box-shadow: 0 16px 36px rgba(22, 42, 42, 0.35);
+      color: #ffffff;
+
+      .console-header {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+
+        .console-title {
+          color: #ffffff;
+        }
+      }
+
+      .active-content {
+        padding-top: 24px;
+
+        .active-banner {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: rgba(46, 213, 115, 0.12);
+          border: 1px solid rgba(46, 213, 115, 0.3);
+          border-radius: 20px;
+          padding: 22px 24px;
+          margin-bottom: 22px;
+
+          .banner-left {
+            display: flex;
+            flex-direction: column;
+
+            .banner-title {
+              font-size: 30px;
+              font-weight: 800;
+              color: #2ed573;
+              letter-spacing: 0.5px;
+            }
+
+            .banner-sub {
+              font-size: 20px;
+              color: rgba(255, 255, 255, 0.7);
+              margin-top: 4px;
+            }
+          }
+
+          .expire-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 14px;
+            font-size: 20px;
+            color: #a4b0be;
+            font-weight: 600;
+          }
+        }
+
+        .pass-credential-box {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 18px;
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 20px;
+
+          .credential-col {
+            display: flex;
+            flex-direction: column;
+
+            .cred-label {
+              font-size: 19px;
+              color: rgba(255, 255, 255, 0.5);
+            }
+
+            .cred-val {
+              font-size: 26px;
+              font-weight: 700;
+              color: rgba(255, 255, 255, 0.95);
+              font-family: monospace, sans-serif;
+              margin-top: 4px;
+              letter-spacing: 1px;
+            }
+          }
+
+          .cred-tip {
+            font-size: 20px;
+            color: rgba(46, 213, 115, 0.85);
+            background: rgba(46, 213, 115, 0.1);
+            padding: 6px 14px;
+            border-radius: 12px;
+          }
+        }
+
+        .active-auto-footer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.04);
+          border-radius: 14px;
+
+          .clock-icon {
+            font-size: 24px;
+            margin-right: 8px;
+          }
+
+          .auto-desc {
+            font-size: 21px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+        }
+      }
+    }
+  }
+
+  /* ================= 3. 开通月卡会员专区 (长期通票) ================= */
+  .monthly-upgrade-card {
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 28px 24px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+
+    .card-top-tag {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 6px 18px;
+      border-top-right-radius: 24px;
+      border-bottom-left-radius: 16px;
+    }
+
+    .upgrade-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 6px;
+
+      .upgrade-title-wrap {
+        display: flex;
+        flex-direction: column;
+
+        .upgrade-main-title {
+          font-size: 32px;
+          font-weight: 800;
+          color: #1e1e30;
+        }
+
+        .upgrade-sub-title {
+          font-size: 21px;
+          color: #8c8d99;
+          margin-top: 4px;
+        }
+      }
+
+      .upgrade-price-wrap {
+        display: flex;
+        align-items: baseline;
+        padding-right: 8px;
+
+        .currency {
+          font-size: 26px;
+          font-weight: 700;
+          color: #6c5ce7;
+        }
+
+        .price-val {
+          font-size: 48px;
+          font-weight: 900;
+          color: #6c5ce7;
+          font-family: 'DIN Alternate', sans-serif;
+          margin: 0 2px;
+        }
+
+        .period {
+          font-size: 20px;
+          color: #a4b0be;
+        }
+      }
+    }
+
+    .upgrade-perks-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 22px 0;
+
+      .perk-pill {
+        display: flex;
+        align-items: center;
+        background: #fbfbfe;
+        border: 1px solid #f0f1f8;
+        padding: 10px 14px;
+        border-radius: 14px;
+
+        .check-gold {
+          color: #ffa502;
+          font-weight: 800;
+          margin-right: 8px;
+          font-size: 20px;
+        }
+
+        .pill-text {
+          font-size: 20px;
+          color: #4b4b5c;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .upgrade-action-btn {
+      border-radius: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #1e1e30 0%, #2c2d49 100%);
+      color: #ffd700;
+      font-size: 28px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 6px 18px rgba(30, 30, 48, 0.25);
+    }
+  }
+
+  /* ================= 4. 到店须知 ================= */
+  .rules-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 26px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+
+    .rules-title {
+      display: flex;
+      align-items: center;
+      font-size: 28px;
+      font-weight: 800;
+      color: #1e1e30;
+      margin-bottom: 20px;
+
+      .icon {
+        margin-right: 10px;
+        font-size: 32px;
+      }
+    }
+
+    .rule-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 14px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .rule-badge {
+        font-size: 19px;
+        font-weight: 700;
+        background: #f1f2f6;
+        color: #57606f;
+        padding: 4px 12px;
+        border-radius: 8px;
+        margin-right: 14px;
+        white-space: nowrap;
+        margin-top: 2px;
+      }
+
+      .rule-text {
+        font-size: 21px;
+        color: #747d8c;
+        line-height: 1.5;
+        flex: 1;
+      }
+    }
+  }
+}
+
+/* 动效 */
+@keyframes vipShimmer {
+  0% { left: -100%; }
+  50%, 100% { left: 180%; }
+}
+
+@keyframes dotGlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}

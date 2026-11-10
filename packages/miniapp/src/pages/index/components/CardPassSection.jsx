@@ -1,48 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import { AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
-import { rechargeTcgPass } from '@/api'
+import { getTcgPassOptions, activateTcgPass, buyTcgMonthlyPass } from '@/api'
 import { authStore } from '@/stores/auth'
-import PassCard from './PassCard'
-
-// 卡牌通行天数方案配置（充值天数，可自由累加）
-export const PASS_PLANS = [
-  {
-    id: 'day',
-    title: '充值 1 天',
-    subTitle: '当天有效，至次日早 6:00 结算',
-    price: 15,
-    unit: '1天',
-    days: 1,
-    tag: '单日畅玩',
-    featured: false,
-    benefits: [
-      '当天营业时间内无限次进出',
-      '次日早 6:00 前有效，夜场无忧',
-      '天数可叠加累计，多充多享',
-      '免费借用高品质对战卡垫',
-    ],
-  },
-  {
-    id: 'monthly',
-    title: '充值 30 天',
-    subTitle: '包含当天整整30天，统一早 6:00 结算',
-    price: 180,
-    unit: '30天',
-    days: 30,
-    tag: '🔥 热门特惠',
-    featured: true,
-    benefits: [
-      '包含当天整整 30 天全时段畅玩',
-      '每天统一早 6:00 结算重置',
-      '天数可自由累加顺延',
-      '店内正品卡牌与周边享95折',
-    ],
-  },
-]
+import './CardPassSection.scss'
 
 export default function CardPassSection({
+  user,
   available,
   onRechargeSuccess,
   showDialog,
@@ -50,25 +15,59 @@ export default function CardPassSection({
   showSuccess,
   showError,
 }) {
-  const [buyPassModalVisible, setBuyPassModalVisible] = useState(false)
-  const [selectedPassPlan, setSelectedPassPlan] = useState(null)
+  const [pricing, setPricing] = useState({ day_price: 15, month_price: 180 })
+  const [monthlyModalVisible, setMonthlyModalVisible] = useState(false)
+  const [activating, setActivating] = useState(false)
 
-  // 点击开通通行证
-  const handleOpenBuyPass = (plan) => {
-    setSelectedPassPlan(plan)
-    setBuyPassModalVisible(true)
+  // 动态加载数据库 setting 中配置的最新价格
+  const fetchPricing = async () => {
+    try {
+      const res = await getTcgPassOptions()
+      if (res && res.day_price) {
+        setPricing({
+          day_price: Number(res.day_price),
+          month_price: Number(res.month_price),
+        })
+      }
+    } catch (e) {
+      // 保持默认 fallback
+    }
   }
 
-  // 确认开通（调用后端真实充值天数接口）
-  const handleConfirmBuyPass = async () => {
-    if (!selectedPassPlan) return
+  useEffect(() => {
+    fetchPricing()
+  }, [])
 
-    const currentBalance = Number(available.balance || 0)
-    if (currentBalance < selectedPassPlan.price) {
-      setBuyPassModalVisible(false)
+  const tcgDays = Number(available?.tcg_days || 0)
+  const hasMonthlyPass = tcgDays > 1
+  const isActiveToday = tcgDays > 0
+
+  const currentBalance = Number(available?.balance || 0)
+  const isBalanceEnoughForDay = currentBalance >= pricing.day_price
+
+  // 生成今日核销防伪串
+  const getTodayCode = () => {
+    const d = new Date()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${month}${day}`
+  }
+
+  // 1. 点击【开启今日专座畅玩】（临时单日开台，每日点一次扣 n 余额，次日凌晨 6 点自动结束）
+  const handleActivateToday = () => {
+    if (isActiveToday) {
+      if (hasMonthlyPass) {
+        showSuccess('您持有有效月卡，畅玩特权已生效中')
+      } else {
+        showSuccess('今日畅玩特权已在生效中，次日早 06:00 自动到期')
+      }
+      return
+    }
+
+    if (!isBalanceEnoughForDay) {
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以购买【${selectedPassPlan.title}】（需 ¥${selectedPassPlan.price}）。是否前往充值？`,
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开启今日畅玩（需 ¥${pricing.day_price}）。是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -78,83 +77,267 @@ export default function CardPassSection({
       return
     }
 
+    showDialog({
+      title: '开启今日专座畅玩',
+      content: `确认开启今日 TCG 专座畅玩？将从您的账户余额扣除 ¥${pricing.day_price}，有效至次日早 06:00 自动结算。`,
+      confirmText: '立即开启',
+      cancelText: '取消',
+      onConfirm: async () => {
+        try {
+          setActivating(true)
+          showLoading('正在开台激活...')
+          const res = await activateTcgPass()
+          await authStore.refreshAvailable()
+          showSuccess(res.message || `开启成功！已扣除 ¥${pricing.day_price}`)
+          if (onRechargeSuccess) {
+            onRechargeSuccess(res)
+          }
+        } catch (e) {
+          showError(e.message || '开启失败，请稍后重试')
+        } finally {
+          setActivating(false)
+        }
+      },
+    })
+  }
+
+  // 2. 点击【开通 / 续费月卡】
+  const handleOpenMonthlyModal = () => {
+    if (currentBalance < pricing.month_price) {
+      showDialog({
+        title: '余额不足',
+        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开通月卡（需 ¥${pricing.month_price}）。是否前往充值？`,
+        confirmText: '立即充值',
+        cancelText: '取消',
+        onConfirm: () => {
+          Taro.navigateTo({ url: '/pages/index/buy' })
+        },
+      })
+      return
+    }
+    setMonthlyModalVisible(true)
+  }
+
+  const handleConfirmMonthlyPass = async () => {
     try {
-      showLoading('正在充值通行天数...')
-      const res = await rechargeTcgPass(selectedPassPlan.id)
+      showLoading('正在办理月卡...')
+      const res = await buyTcgMonthlyPass()
       await authStore.refreshAvailable()
-      setBuyPassModalVisible(false)
-      showSuccess(`充值成功！已累计增加 ${selectedPassPlan.days} 天畅玩`)
+      setMonthlyModalVisible(false)
+      showSuccess(res.message || '月卡开通成功！未来 30 天每日畅玩免扣费')
       if (onRechargeSuccess) {
         onRechargeSuccess(res)
       }
     } catch (e) {
-      setBuyPassModalVisible(false)
-      showError(e.message || '充值失败，请稍后重试')
+      setMonthlyModalVisible(false)
+      showError(e.message || '办理失败，请稍后重试')
     }
   }
 
   return (
-    <View className='card-mode-section'>
-      {/* A. 电子通行凭证卡 (直接复用 PassCard 组件，与 MUG 卡片完全一致) */}
-      <PassCard
-        title='MUG TCG PASS'
-        watermark='TCG PASS'
-        icon='🎴'
-        days={available?.tcg_days || 0}
-        mainDesc='TCG专区畅玩特权'
-        subDesc='专座全天畅玩 · 无限次进出'
-        inactiveDesc='暂未开通畅玩通行'
-        inactiveSubDesc='按需充值天数 · 每天统一早 06:00 结算'
-        showWhenZero={true}
-      />
-
-      {/* B. 通行证套餐办理专区 */}
-      <View className='pass-plans-section'>
-        <View className='section-header'>
-          <Text className='section-title'>充值卡牌通行天数</Text>
-          <Text className='section-subtitle'>到店畅玩 · 自由约战</Text>
-        </View>
-
-        <View className='plans-grid'>
-          {PASS_PLANS.map((plan) => (
-            <View
-              key={plan.id}
-              className={`plan-card btn-press-effect ${plan.featured ? 'plan-featured' : ''}`}
-            >
-              {plan.tag && <View className='plan-tag'>{plan.tag}</View>}
-              <View className='plan-card-header'>
-                <Text className='plan-name'>{plan.title}</Text>
-                <Text className='plan-subtitle'>{plan.subTitle}</Text>
-              </View>
-
-              <View className='plan-price-wrap'>
-                <Text className='currency'>¥</Text>
-                <Text className='price-val'>{plan.price}</Text>
-                <Text className='price-period'>/{plan.unit}</Text>
-              </View>
-
-              <View className='plan-benefits-list'>
-                {plan.benefits.map((b, idx) => (
-                  <View key={idx} className='benefit-item'>
-                    <Text className='check'>✓</Text>
-                    <Text className='benefit-desc'>{b}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <View
-                className={`plan-action-btn ${plan.featured ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => handleOpenBuyPass(plan)}
-              >
-                <Text>立即充值</Text>
+    <View className='tcg-mode-container'>
+      {/* 1. 尊享月卡会员大卡（仅月卡用户展示） */}
+      {hasMonthlyPass && (
+        <View className='monthly-vip-card'>
+          <View className='vip-shimmer' />
+          <View className='vip-watermark'>VIP PASS</View>
+          <View className='vip-header'>
+            <View className='vip-brand'>
+              <Text className='vip-crown'>👑</Text>
+              <View className='vip-brand-text'>
+                <Text className='vip-brand-title'>TCG VIP PASS</Text>
+                <Text className='vip-brand-sub'>尊享畅玩月卡会员</Text>
               </View>
             </View>
-          ))}
+            <View className='vip-status-badge'>
+              <View className='pulse-gold-dot' />
+              <Text>特权生效中</Text>
+            </View>
+          </View>
+
+          <View className='vip-body'>
+            <View className='vip-privilege-info'>
+              <Text className='privilege-highlight'>整月每日任意畅玩</Text>
+              <Text className='privilege-detail'>免扣余额 · 专座对决 · 自由进出</Text>
+            </View>
+
+            <View className='vip-days-box'>
+              <Text className='days-val'>{tcgDays}</Text>
+              <Text className='days-unit'>天剩余</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* 2. 今日对战专座控制台 (临时开台 vs 畅玩中凭证) */}
+      <View className={`today-console-card ${isActiveToday ? 'console-card-active' : ''}`}>
+        <View className='console-header'>
+          <View className='console-title-wrap'>
+            <Text className='console-icon'>🎴</Text>
+            <Text className='console-title'>今日专座畅玩</Text>
+          </View>
+          <View
+            className={`console-status-pill ${
+              isActiveToday ? 'status-active' : 'status-inactive'
+            }`}
+          >
+            <View className='status-dot' />
+            <Text>{isActiveToday ? '正在畅玩中' : '未开台'}</Text>
+          </View>
+        </View>
+
+        {!isActiveToday ? (
+          /* 未开台状态：展示单日计费与一键开台按钮 */
+          <View className='inactive-content'>
+            <View className='pricing-highlight-box'>
+              <View className='pricing-left'>
+                <Text className='pricing-label'>临时单日畅玩</Text>
+                <Text className='pricing-auto-rule'>次日 06:00 自动结束 · 无需手动操作</Text>
+              </View>
+              <View className='pricing-right'>
+                <Text className='currency'>¥</Text>
+                <Text className='amount'>{pricing.day_price}</Text>
+                <Text className='period'>/今日</Text>
+              </View>
+            </View>
+
+            <View className='perks-list'>
+              <View className='perk-item'>
+                <Text className='perk-check'>✓</Text>
+                <Text>专座全天畅玩</Text>
+              </View>
+              <View className='perk-item'>
+                <Text className='perk-check'>✓</Text>
+                <Text>营业时间内无限次进出</Text>
+              </View>
+              <View className='perk-item'>
+                <Text className='perk-check'>✓</Text>
+                <Text>免费借用高品质卡垫</Text>
+              </View>
+              <View className='perk-item'>
+                <Text className='perk-check'>✓</Text>
+                <Text>当日无需重复计费</Text>
+              </View>
+            </View>
+
+            <View className='balance-indicator-row'>
+              <Text className='balance-label'>当前账户可用余额：</Text>
+              <Text
+                className={`balance-val ${
+                  isBalanceEnoughForDay ? 'sufficient' : 'insufficient'
+                }`}
+              >
+                ¥{available?.balance || '0.00'}
+                {!isBalanceEnoughForDay && ' (余额不足)'}
+              </Text>
+            </View>
+
+            <View
+              className={`start-play-main-btn btn-press-effect ${
+                activating ? 'disabled' : ''
+              }`}
+              onClick={handleActivateToday}
+            >
+              <View className='btn-main-title'>
+                <Text className='bolt-icon'>⚡</Text>
+                <Text>开启今日专座畅玩</Text>
+              </View>
+              <Text className='btn-sub-tip'>
+                扣除余额 ¥{pricing.day_price} · 统一至次日早 06:00 自动结束
+              </Text>
+            </View>
+          </View>
+        ) : (
+          /* 畅玩中状态：展示核销凭证与倒计时提醒 */
+          <View className='active-content'>
+            <View className='active-banner'>
+              <View className='banner-left'>
+                <Text className='banner-title'>
+                  {hasMonthlyPass ? '👑 尊享月卡特权已开台' : '✨ 今日专座畅玩已激活'}
+                </Text>
+                <Text className='banner-sub'>
+                  {hasMonthlyPass
+                    ? '月度会员本日免扣费，到店出示即可畅玩'
+                    : '今日营业时间内自由进出，已成功开台'}
+                </Text>
+              </View>
+              <View className='expire-badge'>
+                <Text>有效至明日 06:00</Text>
+              </View>
+            </View>
+
+            <View className='pass-credential-box'>
+              <View className='credential-col'>
+                <Text className='cred-label'>到店核销凭证码</Text>
+                <Text className='cred-val'>
+                  TCG-{user?.id ? String(user.id).padStart(4, '0') : '0001'}-{getTodayCode()}
+                </Text>
+              </View>
+              <Text className='cred-tip'>进店出示直接畅玩</Text>
+            </View>
+
+            <View className='active-auto-footer'>
+              <Text className='clock-icon'>⏰</Text>
+              <Text className='auto-desc'>
+                统一于次日早 06:00 自动结束，期间自由对决，无需任何手动操作
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* 3. 开通 / 续费 TCG 畅玩月卡专区 (长期通票) */}
+      <View className='monthly-upgrade-card'>
+        <View className='card-top-tag'>🔥 整月免扣费</View>
+        <View className='upgrade-header-row'>
+          <View className='upgrade-title-wrap'>
+            <Text className='upgrade-main-title'>TCG 畅玩月卡 (30天)</Text>
+            <Text className='upgrade-sub-title'>
+              {hasMonthlyPass
+                ? `当前月卡剩余 ${tcgDays} 天，可随时顺延续费`
+                : '经常来店？开通月卡，整月每日免扣费随心畅玩'}
+            </Text>
+          </View>
+          <View className='upgrade-price-wrap'>
+            <Text className='currency'>¥</Text>
+            <Text className='price-val'>{pricing.month_price}</Text>
+            <Text className='period'>/30天</Text>
+          </View>
+        </View>
+
+        <View className='upgrade-perks-row'>
+          <View className='perk-pill'>
+            <Text className='check-gold'>✓</Text>
+            <Text className='pill-text'>整月每日畅玩免扣费</Text>
+          </View>
+          <View className='perk-pill'>
+            <Text className='check-gold'>✓</Text>
+            <Text className='pill-text'>免去每日单独开台扣费</Text>
+          </View>
+          <View className='perk-pill'>
+            <Text className='check-gold'>✓</Text>
+            <Text className='pill-text'>支持随时顺延叠加天数</Text>
+          </View>
+          <View className='perk-pill'>
+            <Text className='check-gold'>✓</Text>
+            <Text className='pill-text'>免费借用专业对战卡垫</Text>
+          </View>
+        </View>
+
+        <View
+          className='upgrade-action-btn btn-press-effect'
+          onClick={handleOpenMonthlyModal}
+        >
+          <Text>
+            {hasMonthlyPass
+              ? `续费 30 天月卡 (¥${pricing.month_price})`
+              : `立即开通畅玩月卡 (¥${pricing.month_price})`}
+          </Text>
         </View>
       </View>
 
-      {/* C. 到店须知与专属特权 */}
-      <View className='rules-card card-rules-card'>
+      {/* 4. 卡牌专区到店须知 */}
+      <View className='rules-card'>
         <View className='rules-title'>
           <Text className='icon'>📖</Text>
           <Text>卡牌专区到店须知</Text>
@@ -162,72 +345,84 @@ export default function CardPassSection({
         <View className='rule-item'>
           <Text className='rule-badge'>入场凭证</Text>
           <Text className='rule-text'>
-            进店入场请主动向店员出示本有效通行证卡面，核验即可直接畅玩。
+            进店入场请主动向店员出示本页面「正在畅玩中」核销凭证，核验即可直接入座。
           </Text>
         </View>
         <View className='rule-item'>
-          <Text className='rule-badge'>自由入座</Text>
+          <Text className='rule-badge'>自动结束</Text>
           <Text className='rule-text'>
-            通行证有效时间内，可在店内营业时间内自由进出，使用 TCG 专区空余卡位。
+            每日畅玩统一于次日早 06:00 自动结束结算，期间自由进出，无需任何手动操作。
           </Text>
         </View>
         <View className='rule-item'>
-          <Text className='rule-badge'>专属特权</Text>
+          <Text className='rule-badge'>月卡权益</Text>
           <Text className='rule-text'>
-            通行证有效期间享特调饮品折扣与借用卡垫等额外福利，详情可在前台凭卡咨询。
+            持有有效月卡期间，整月每天进店开台均免扣除任何余额，高频玩家更实惠。
           </Text>
         </View>
         <View className='rule-item'>
           <Text className='rule-badge'>文明对决</Text>
           <Text className='rule-text'>
-            请爱护公用卡垫与桌椅环境，对决完毕后请带走随身垃圾，共同维护决斗氛围。
+            请爱护公用对战桌椅与卡垫环境，对决完毕后带走随身垃圾，共同维护决斗氛围。
           </Text>
         </View>
       </View>
 
-      {/* 通行证开通确认弹窗 */}
+      {/* 5. 月卡开通确认弹窗 */}
       <AtModal
-        isOpened={buyPassModalVisible}
+        isOpened={monthlyModalVisible}
         closeOnClickOverlay={false}
-        onClose={() => setBuyPassModalVisible(false)}
+        onClose={() => setMonthlyModalVisible(false)}
       >
-        <AtModalHeader>充值卡牌通行天数</AtModalHeader>
+        <AtModalHeader>
+          {hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡'}
+        </AtModalHeader>
         <AtModalContent>
-          {selectedPassPlan && (
-            <View className='buy-pass-modal-content'>
-              <View className='modal-plan-header'>
-                <Text className='plan-title-large'>{selectedPassPlan.title}</Text>
-                <View className='price-highlight'>
-                  <Text className='symbol'>¥</Text>
-                  <Text className='amount'>{selectedPassPlan.price}</Text>
-                  <Text className='unit'>/{selectedPassPlan.unit}</Text>
-                </View>
+          <View className='buy-pass-modal-content'>
+            <View className='modal-plan-header'>
+              <Text className='plan-title-large'>TCG 畅玩月卡 (30天)</Text>
+              <View className='price-highlight'>
+                <Text className='symbol'>¥</Text>
+                <Text className='amount'>{pricing.month_price}</Text>
+                <Text className='unit'>/30天</Text>
               </View>
-
-              <View className='modal-balance-row'>
-                <Text className='label'>当前账户余额：</Text>
-                <Text className='val'>¥{available.balance || '0.00'}</Text>
-              </View>
-
-              <View className='modal-privileges-box'>
-                <Text className='box-title'>包含专属特权：</Text>
-                {selectedPassPlan.benefits.map((b, i) => (
-                  <View key={i} className='privilege-line'>
-                    <Text className='check-icon'>✓</Text>
-                    <Text className='privilege-text'>{b}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <Text className='modal-tip-text'>
-                * 确认充值将扣除相应账户余额，立即激活电子通行天数，进店出示即可畅玩。
-              </Text>
             </View>
-          )}
+
+            <View className='modal-balance-row'>
+              <Text className='label'>当前账户可用余额：</Text>
+              <Text className='val'>¥{available?.balance || '0.00'}</Text>
+            </View>
+
+            <View className='modal-privileges-box'>
+              <Text className='box-title'>包含专属特权：</Text>
+              <View className='privilege-line'>
+                <Text className='check-icon'>✓</Text>
+                <Text className='privilege-text'>未来 30 天每日畅玩免扣费</Text>
+              </View>
+              <View className='privilege-line'>
+                <Text className='check-icon'>✓</Text>
+                <Text className='privilege-text'>营业时间内随时自由进出专座</Text>
+              </View>
+              <View className='privilege-line'>
+                <Text className='check-icon'>✓</Text>
+                <Text className='privilege-text'>免费借用店内高品质对战卡垫</Text>
+              </View>
+              <View className='privilege-line'>
+                <Text className='check-icon'>✓</Text>
+                <Text className='privilege-text'>统一每天早 06:00 自动结算，无忧畅玩</Text>
+              </View>
+            </View>
+
+            <Text className='modal-tip-text'>
+              * 确认开通将扣除账户余额 ¥{pricing.month_price}，立即生效 30 天月度特权，整月每天进店均无需再扣余额。
+            </Text>
+          </View>
         </AtModalContent>
         <AtModalAction>
-          <Button onClick={() => setBuyPassModalVisible(false)}>取消</Button>
-          <Button onClick={handleConfirmBuyPass}>确认充值</Button>
+          <Button onClick={() => setMonthlyModalVisible(false)}>取消</Button>
+          <Button onClick={handleConfirmMonthlyPass}>
+            {hasMonthlyPass ? '确认续费' : '确认开通'}
+          </Button>
         </AtModalAction>
       </AtModal>
     </View>

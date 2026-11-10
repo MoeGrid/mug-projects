@@ -1,5 +1,7 @@
-// Event / Setting 数据访问
+// Event 数据访问，Setting 请使用 ./setting.js
 import { db } from '../db/client.js';
+
+export { getSetting, getJsonSetting, setSetting } from './setting.js';
 
 export async function listActiveEvents(now) {
   return db
@@ -20,7 +22,3 @@ export async function findActiveEvent(id, now) {
     .executeTakeFirst();
 }
 
-export async function getSetting(key, def = null) {
-  const row = await db.selectFrom('mug_setting').where('key', '=', key).select('value').executeTakeFirst();
-  return row ? row.value : def;
-}
