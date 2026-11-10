@@ -9,33 +9,38 @@ import './CardPassSection.scss'
 export default function CardPassSection({
   user,
   available,
-  refreshTrigger,
+  pricing: propPricing,
+  status: propStatus,
+  onRefresh,
   onRechargeSuccess,
   showDialog,
   showLoading,
   showSuccess,
   showError,
 }) {
-  const [pricing, setPricing] = useState({ day_price: 15, month_price: 180 })
-  const [status, setStatus] = useState({
+  const [localPricing, setLocalPricing] = useState({ day_price: 15, month_price: 180 })
+  const [localStatus, setLocalStatus] = useState({
     isActiveToday: false,
     hasMonthlyPass: false,
     tcgDays: 0,
   })
   const [activating, setActivating] = useState(false)
 
-  // 动态加载数据库中的价格配置与今日上机状态
+  // 独立使用时的兜底加载逻辑
   const fetchStatus = useCallback(async () => {
+    if (onRefresh) {
+      return onRefresh()
+    }
     try {
       const res = await getTcgPassOptions()
       if (res) {
         if (res.day_price) {
-          setPricing({
+          setLocalPricing({
             day_price: Number(res.day_price),
             month_price: Number(res.month_price),
           })
         }
-        setStatus({
+        setLocalStatus({
           isActiveToday: Boolean(res.is_active_today),
           hasMonthlyPass: Boolean(res.has_monthly_pass),
           tcgDays: Number(res.tcg_days || 0),
@@ -44,20 +49,17 @@ export default function CardPassSection({
     } catch (e) {
       // 保持当前状态
     }
-  }, [])
+  }, [onRefresh])
 
   useEffect(() => {
-    fetchStatus()
-
-    const onRefreshEvent = () => {
+    if (!propStatus) {
       fetchStatus()
     }
-    Taro.eventCenter.on('refreshData', onRefreshEvent)
+  }, [fetchStatus, propStatus])
 
-    return () => {
-      Taro.eventCenter.off('refreshData', onRefreshEvent)
-    }
-  }, [fetchStatus, refreshTrigger])
+  // 优先取 props（父级统一数据源），兜底取 local
+  const pricing = propPricing || localPricing
+  const status = propStatus || localStatus
 
   // 兜底结合 store 中的数据（以接口返回的 status 为准）
   const tcgDays = status.hasMonthlyPass ? status.tcgDays : Number(available?.tcg_days || 0)

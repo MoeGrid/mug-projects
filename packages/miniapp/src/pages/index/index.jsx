@@ -11,6 +11,7 @@ import {
 
 import {
   getArcadeDevices,
+  getTcgPassOptions,
   bleConsumeCoin,
   remoteInsertCoin,
   uploadImage,
@@ -39,7 +40,6 @@ export default function IndexPage() {
 
   // 双核模式：'arcade' (街机音游) | 'card' (卡牌通行证)
   const [activeMode, setActiveMode] = useState(settingStore.state.mainMode || 'arcade')
-  const [tcgRefreshKey, setTcgRefreshKey] = useState(0)
 
   useEffect(() => {
     return authStore.subscribe((state) => {
@@ -53,7 +53,9 @@ export default function IndexPage() {
     setActiveMode(mode)
     settingStore.setMainMode(mode)
     if (mode === 'card') {
-      setTcgRefreshKey((k) => k + 1)
+      loadTcgStatus()
+    } else {
+      loadDevices()
     }
   }
 
@@ -192,17 +194,56 @@ export default function IndexPage() {
     }
   }, [])
 
-  // 刷新可用数据
+  // TCG 专区价格与状态提升至页面层（统一数据流与下拉等待）
+  const [tcgPricing, setTcgPricing] = useState({ day_price: 15, month_price: 180 })
+  const [tcgStatus, setTcgStatus] = useState({
+    isActiveToday: false,
+    hasMonthlyPass: false,
+    tcgDays: 0,
+  })
+
+  // 加载 TCG 通行证与今日状态（支持 async/await 统一等待）
+  const loadTcgStatus = useCallback(async () => {
+    try {
+      const res = await getTcgPassOptions()
+      if (res) {
+        if (res.day_price) {
+          setTcgPricing({
+            day_price: Number(res.day_price),
+            month_price: Number(res.month_price),
+          })
+        }
+        setTcgStatus({
+          isActiveToday: Boolean(res.is_active_today),
+          hasMonthlyPass: Boolean(res.has_monthly_pass),
+          tcgDays: Number(res.tcg_days || 0),
+        })
+      }
+      return res
+    } catch (e) {
+      console.error('加载TCG状态失败:', e)
+    }
+  }, [])
+
+  // 统一全量刷新：MUG 资产 + MUG 机台 + TCG 专区状态并行获取
+  const refreshAllData = useCallback(async () => {
+    return Promise.all([
+      authStore.refreshAvailable(),
+      loadDevices(),
+      loadTcgStatus(),
+    ])
+  }, [loadDevices, loadTcgStatus])
+
+  // 手动/事件同步可用数据
   const handleRefresh = useCallback(async () => {
     showLoading('同步数据中...')
     try {
-      await Promise.all([authStore.refreshAvailable(), loadDevices()])
-      setTcgRefreshKey((k) => k + 1)
+      await refreshAllData()
       showSuccess('已同步')
     } catch (e) {
       showError(e.message || '同步失败')
     }
-  }, [loadDevices, showLoading, showSuccess, showError])
+  }, [refreshAllData, showLoading, showSuccess, showError])
 
   // 初始化与登录
   useEffect(() => {
@@ -237,16 +278,14 @@ export default function IndexPage() {
       return
     }
     if (authStore.token && !authStore.user?.is_ban) {
-      authStore.refreshAvailable()
-      setTcgRefreshKey((k) => k + 1)
+      refreshAllData()
     }
   })
 
-  // 原生整页面下拉刷新（对齐 record 页面交互：静默同步并收起动画，不弹 Toast 避免遮罩拦截后续手势）
+  // 原生整页面下拉刷新：严格等待 MUG 资产、街机机台、TCG 状态全部完成，再平滑收起下拉动画
   usePullDownRefresh(async () => {
     try {
-      await Promise.all([authStore.refreshAvailable(), loadDevices()])
-      setTcgRefreshKey((k) => k + 1)
+      await refreshAllData()
     } catch (e) {
       console.error('下拉同步失败:', e)
     } finally {
@@ -448,7 +487,9 @@ export default function IndexPage() {
         <CardPassSection
           user={user}
           available={available}
-          refreshTrigger={tcgRefreshKey}
+          pricing={tcgPricing}
+          status={tcgStatus}
+          onRefresh={loadTcgStatus}
           showDialog={showDialog}
           showLoading={showLoading}
           showSuccess={showSuccess}
