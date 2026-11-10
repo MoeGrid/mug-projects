@@ -116,7 +116,7 @@ tcgRouter.post('/passes/activate', async (c) => {
     // 3. 非月卡用户：单日上机，扣除 day_price 余额，独立记录 mug_tcg_record，不修改 tcg_expire_date
     const currentBalance = freshUser.balance;
     if (Number(currentBalance) < dayPrice) {
-      throw new AppError(`账户余额不足（当前 ¥${toMoney(currentBalance)}，开启今日畅玩需 ¥${dayPrice}），请先充值`);
+      throw new AppError(`账户余额不足以开启今日畅玩（需 ¥${dayPrice}），请先充值`);
     }
 
     const newBalance = subMoney(currentBalance, dayPrice);
@@ -172,7 +172,7 @@ tcgRouter.post('/passes/buy-monthly', async (c) => {
 
     const currentBalance = freshUser.balance;
     if (Number(currentBalance) < monthPrice) {
-      throw new AppError(`账户余额不足（当前 ¥${toMoney(currentBalance)}，开通月卡需 ¥${monthPrice}），请先充值`);
+      throw new AppError(`账户余额不足以办理月卡（需 ¥${monthPrice}），请先充值`);
     }
 
     const newBalance = subMoney(currentBalance, monthPrice);

@@ -80,11 +80,11 @@ export default function CardPassSection({
       return
     }
 
-    // 若持有有效月卡，免扣余额直接开启
+    // 若持有有效月卡，直接开启
     if (hasMonthlyPass) {
       showDialog({
         title: '开启今日畅玩',
-        content: '您持有有效月卡，开启今日畅玩免扣余额！有效至次日早 06:00 自动结束。',
+        content: '月卡特权生效中，本次免费，有效至次日早 06:00 自动结束。确认开启？',
         confirmText: '立即开启',
         cancelText: '取消',
         onConfirm: async () => {
@@ -94,7 +94,7 @@ export default function CardPassSection({
             const res = await activateTcgPass()
             await authStore.refreshAvailable()
             await fetchStatus()
-            showSuccess(res.message || '月卡特权生效！今日畅玩已开启')
+            showSuccess(res.message || '今日畅玩已开启')
             if (onRechargeSuccess) {
               onRechargeSuccess(res)
             }
@@ -112,7 +112,7 @@ export default function CardPassSection({
     if (!isBalanceEnoughForDay) {
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以开启今日畅玩（需 ¥${pricing.day_price}）。是否前往充值？`,
+        content: `余额不足以开启今日畅玩（需 ¥${pricing.day_price}），是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -124,7 +124,7 @@ export default function CardPassSection({
 
     showDialog({
       title: '开启今日畅玩',
-      content: `确认开启今日 TCG 畅玩？将从账户余额扣除 ¥${pricing.day_price}，有效至次日早 06:00 自动结束。`,
+      content: `确认开启今日畅玩？将扣除 ¥${pricing.day_price}，有效至次日早 06:00 自动结束。`,
       confirmText: '立即开启',
       cancelText: '取消',
       onConfirm: async () => {
@@ -134,7 +134,7 @@ export default function CardPassSection({
           const res = await activateTcgPass()
           await authStore.refreshAvailable()
           await fetchStatus()
-          showSuccess(res.message || `开启成功！已扣除 ¥${pricing.day_price}`)
+          showSuccess(res.message || '开启成功')
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
           }
@@ -152,7 +152,7 @@ export default function CardPassSection({
     if (currentBalance < pricing.month_price) {
       showDialog({
         title: '余额不足',
-        content: `当前账户余额 ¥${currentBalance.toFixed(2)}，不足以办理月卡（需 ¥${pricing.month_price}）。是否前往充值？`,
+        content: `余额不足以办理月卡（需 ¥${pricing.month_price}），是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -164,7 +164,7 @@ export default function CardPassSection({
 
     showDialog({
       title: hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡',
-      content: `确认${hasMonthlyPass ? '续费' : '办理'} 30 天 TCG 畅玩月卡？将从账户余额扣除 ¥${pricing.month_price}，生效期内每日进店均免扣费！当前可用余额 ¥${currentBalance.toFixed(2)}。`,
+      content: `确认${hasMonthlyPass ? '续费' : '办理'} 30 天月卡？将扣除 ¥${pricing.month_price}，生效期内每日进店免扣费。`,
       confirmText: hasMonthlyPass ? '确认续费' : '确认开通',
       cancelText: '取消',
       onConfirm: async () => {
@@ -222,7 +222,7 @@ export default function CardPassSection({
             <View className='pricing-highlight-box'>
               <View className='pricing-left'>
                 <Text className='pricing-label'>
-                  {hasMonthlyPass ? '月卡免扣费畅玩' : '临时单日畅玩'}
+                  {hasMonthlyPass ? '月卡畅玩' : '单日畅玩'}
                 </Text>
                 <Text className='pricing-auto-rule'>次日早 06:00 自动到期 · 无需操作</Text>
               </View>
