@@ -15,45 +15,87 @@ export default function CardPassSection({
   showError,
 }) {
   const [pricing, setPricing] = useState({ day_price: 15, month_price: 180 })
+  const [status, setStatus] = useState({
+    isActiveToday: false,
+    hasMonthlyPass: false,
+    tcgDays: 0,
+  })
   const [activating, setActivating] = useState(false)
 
-  // 动态加载数据库 setting 中配置的最新价格
-  const fetchPricing = async () => {
+  // 动态加载数据库中的价格配置与今日上机状态
+  const fetchStatus = async () => {
     try {
       const res = await getTcgPassOptions()
-      if (res && res.day_price) {
-        setPricing({
-          day_price: Number(res.day_price),
-          month_price: Number(res.month_price),
+      if (res) {
+        if (res.day_price) {
+          setPricing({
+            day_price: Number(res.day_price),
+            month_price: Number(res.month_price),
+          })
+        }
+        setStatus({
+          isActiveToday: Boolean(res.is_active_today),
+          hasMonthlyPass: Boolean(res.has_monthly_pass),
+          tcgDays: Number(res.tcg_days || 0),
         })
       }
     } catch (e) {
-      // 保持默认 fallback
+      // 保持当前状态
     }
   }
 
   useEffect(() => {
-    fetchPricing()
+    fetchStatus()
   }, [])
 
-  const tcgDays = Number(available?.tcg_days || 0)
-  const hasMonthlyPass = tcgDays > 1
-  const isActiveToday = tcgDays > 0
+  // 兜底结合 store 中的数据（以接口返回的 status 为准）
+  const tcgDays = status.hasMonthlyPass ? status.tcgDays : Number(available?.tcg_days || 0)
+  const hasMonthlyPass = status.hasMonthlyPass || tcgDays > 0
+  const isActiveToday = status.isActiveToday
 
   const currentBalance = Number(available?.balance || 0)
   const isBalanceEnoughForDay = currentBalance >= pricing.day_price
 
-  // 1. 点击【开启今日畅玩】（单日开通，扣除当天费用，次日凌晨 6 点自动结束）
+  // 1. 点击【开启今日畅玩】（单日开通，扣除当天费用，次日凌晨 6 点自动结束；月卡用户免扣费）
   const handleActivateToday = () => {
     if (isActiveToday) {
       if (hasMonthlyPass) {
-        showSuccess('您持有有效月卡，进店特权生效中')
+        showSuccess('您持有有效月卡，今日畅玩已生效中')
       } else {
         showSuccess('今日畅玩特权已生效中，次日早 06:00 自动到期')
       }
       return
     }
 
+    // 若持有有效月卡，免扣余额直接开启
+    if (hasMonthlyPass) {
+      showDialog({
+        title: '开启今日畅玩',
+        content: '您持有有效月卡，开启今日畅玩免扣余额！有效至次日早 06:00 自动结束。',
+        confirmText: '立即开启',
+        cancelText: '取消',
+        onConfirm: async () => {
+          try {
+            setActivating(true)
+            showLoading('正在开启...')
+            const res = await activateTcgPass()
+            await authStore.refreshAvailable()
+            await fetchStatus()
+            showSuccess(res.message || '月卡特权生效！今日畅玩已开启')
+            if (onRechargeSuccess) {
+              onRechargeSuccess(res)
+            }
+          } catch (e) {
+            showError(e.message || '开启失败，请稍后重试')
+          } finally {
+            setActivating(false)
+          }
+        },
+      })
+      return
+    }
+
+    // 非月卡用户：检查余额
     if (!isBalanceEnoughForDay) {
       showDialog({
         title: '余额不足',
@@ -78,6 +120,7 @@ export default function CardPassSection({
           showLoading('正在开启...')
           const res = await activateTcgPass()
           await authStore.refreshAvailable()
+          await fetchStatus()
           showSuccess(res.message || `开启成功！已扣除 ¥${pricing.day_price}`)
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
@@ -116,6 +159,7 @@ export default function CardPassSection({
           showLoading('正在办理月卡...')
           const res = await buyTcgMonthlyPass()
           await authStore.refreshAvailable()
+          await fetchStatus()
           showSuccess(res.message || '月卡办理成功！')
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
@@ -184,27 +228,39 @@ export default function CardPassSection({
           <View className='inactive-content'>
             <View className='pricing-highlight-box'>
               <View className='pricing-left'>
-                <Text className='pricing-label'>临时单日畅玩</Text>
+                <Text className='pricing-label'>
+                  {hasMonthlyPass ? '月卡免扣费畅玩' : '临时单日畅玩'}
+                </Text>
                 <Text className='pricing-auto-rule'>次日早 06:00 自动到期 · 无需操作</Text>
               </View>
               <View className='pricing-right'>
-                <Text className='currency'>¥</Text>
-                <Text className='amount'>{pricing.day_price}</Text>
-                <Text className='period'>/今日</Text>
+                {hasMonthlyPass ? (
+                  <Text className='amount' style={{ fontSize: '20px', color: '#2ed573' }}>
+                    免费
+                  </Text>
+                ) : (
+                  <>
+                    <Text className='currency'>¥</Text>
+                    <Text className='amount'>{pricing.day_price}</Text>
+                    <Text className='period'>/今日</Text>
+                  </>
+                )}
               </View>
             </View>
 
-            <View className='balance-indicator-row'>
-              <Text className='balance-label'>当前账户可用余额：</Text>
-              <Text
-                className={`balance-val ${
-                  isBalanceEnoughForDay ? 'sufficient' : 'insufficient'
-                }`}
-              >
-                ¥{available?.balance || '0.00'}
-                {!isBalanceEnoughForDay && ' (余额不足)'}
-              </Text>
-            </View>
+            {!hasMonthlyPass && (
+              <View className='balance-indicator-row'>
+                <Text className='balance-label'>当前账户可用余额：</Text>
+                <Text
+                  className={`balance-val ${
+                    isBalanceEnoughForDay ? 'sufficient' : 'insufficient'
+                  }`}
+                >
+                  ¥{available?.balance || '0.00'}
+                  {!isBalanceEnoughForDay && ' (余额不足)'}
+                </Text>
+              </View>
+            )}
 
             <View
               className={`start-play-main-btn btn-press-effect ${
@@ -214,10 +270,12 @@ export default function CardPassSection({
             >
               <View className='btn-main-title'>
                 <Text className='bolt-icon'>⚡</Text>
-                <Text>开启今日畅玩</Text>
+                <Text>{hasMonthlyPass ? '开启今日畅玩 (免扣费)' : '开启今日畅玩'}</Text>
               </View>
               <Text className='btn-sub-tip'>
-                扣除余额 ¥{pricing.day_price} · 开通后即可进店畅玩
+                {hasMonthlyPass
+                  ? '月卡免扣余额 · 开通后即可进店畅玩'
+                  : `扣除余额 ¥${pricing.day_price} · 开通后即可进店畅玩`}
               </Text>
             </View>
           </View>
