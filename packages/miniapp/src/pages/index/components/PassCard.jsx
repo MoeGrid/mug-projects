@@ -1,20 +1,20 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import './PassCard.scss'
 
 /**
- * 通用畅玩通行凭证卡片（MUG 音游与 TCG 卡牌专区通用）
+ * 通用尊享 VIP PASS 通行卡片（MUG 音游与 TCG 卡牌专区统一金黄黑金风格）
  */
 export default function PassCard({
-  title = 'MUG PASS',
-  watermark = 'PASS',
-  icon = '⚡',
+  title = 'VIP PASS',
+  subTitle = '',
+  watermark = 'VIP PASS',
+  icon = '👑',
   days = 0,
-  statusText = '',
+  statusText = '特权生效中',
   daysUnit = '天剩余',
   mainDesc = '全场畅玩特权',
-  subDesc = '畅玩免扣 · 尽情游玩',
-  inactiveDesc = '暂未开通畅玩通行',
-  inactiveSubDesc = '按需开启畅玩 · 每天统一早 06:00 结算',
+  subDesc = '',
   showWhenZero = false,
   className = '',
 }) {
@@ -24,36 +24,33 @@ export default function PassCard({
     return null
   }
 
-  const displayStatus = statusText || (isValid ? '畅玩生效中' : '未激活')
-
   return (
-    <View className={`mug-arc-pass-card ${isValid ? '' : 'pass-inactive'} ${className}`}>
-      {isValid && <View className='hologram-shimmer' />}
-      <View className='card-watermark'>{watermark}</View>
-      <View className='pass-inner'>
-        <View className='pass-top'>
-          <View className='pass-brand'>
-            <Text className='brand-icon'>{icon}</Text>
-            <Text className='brand-title'>{title}</Text>
-          </View>
-          <View className={`pass-status ${isValid ? '' : 'inactive-status'}`}>
-            {isValid && <View className='pulse-dot' />}
-            <Text>{displayStatus}</Text>
+    <View className={`common-vip-pass-card ${className}`}>
+      <View className='vip-shimmer' />
+      <View className='vip-watermark'>{watermark}</View>
+      <View className='vip-header'>
+        <View className='vip-brand'>
+          <Text className='vip-crown'>{icon}</Text>
+          <View className='vip-brand-text'>
+            <Text className='vip-brand-title'>{title}</Text>
+            {subTitle ? <Text className='vip-brand-sub'>{subTitle}</Text> : null}
           </View>
         </View>
+        <View className='vip-status-badge'>
+          <View className='pulse-gold-dot' />
+          <Text>{statusText}</Text>
+        </View>
+      </View>
 
-        <View className='pass-content'>
-          <View className='privilege-desc'>
-            <Text className='desc-main'>{isValid ? mainDesc : inactiveDesc}</Text>
-            <Text className='desc-sub'>{isValid ? subDesc : inactiveSubDesc}</Text>
-          </View>
+      <View className='vip-body'>
+        <View className='vip-privilege-info'>
+          <Text className='privilege-highlight'>{mainDesc}</Text>
+          {subDesc ? <Text className='vip-privilege-detail'>{subDesc}</Text> : null}
+        </View>
 
-          {isValid && (
-            <View className='days-wrap'>
-              <Text className='days-num'>{days}</Text>
-              <Text className='days-unit'>{daysUnit}</Text>
-            </View>
-          )}
+        <View className='vip-days-box'>
+          <Text className='days-val'>{days}</Text>
+          <Text className='days-unit'>{daysUnit}</Text>
         </View>
       </View>
     </View>

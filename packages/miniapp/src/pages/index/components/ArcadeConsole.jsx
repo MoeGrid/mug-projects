@@ -19,11 +19,12 @@ export default function ArcadeConsole({
       {/* 0. 内部特权通行证 MUG ARC PASS (仅在 days > 0 时对内展示) */}
       <PassCard
         title='MUG ARC PASS'
+        subTitle='街机畅玩会员'
         watermark='ARC PASS'
         icon='⚡'
         days={days}
-        mainDesc='全街机畅玩特权'
-        subDesc='投币免扣余额 · 尽情游玩'
+        mainDesc='全机台投币免扣余额'
+        subDesc='直接刷卡投币 · 尽情畅玩'
         showWhenZero={false}
       />
 

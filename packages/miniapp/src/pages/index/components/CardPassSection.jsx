@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { getTcgPassOptions, activateTcgPass, buyTcgMonthlyPass } from '@/api'
 import { authStore } from '@/stores/auth'
+import PassCard from './PassCard'
 import './CardPassSection.scss'
 
 export default function CardPassSection({
@@ -175,35 +176,15 @@ export default function CardPassSection({
     <View className='tcg-mode-container'>
       {/* 1. 尊享月卡会员大卡（仅月卡用户展示） */}
       {hasMonthlyPass && (
-        <View className='monthly-vip-card'>
-          <View className='vip-shimmer' />
-          <View className='vip-watermark'>VIP PASS</View>
-          <View className='vip-header'>
-            <View className='vip-brand'>
-              <Text className='vip-crown'>👑</Text>
-              <View className='vip-brand-text'>
-                <Text className='vip-brand-title'>TCG VIP PASS</Text>
-                <Text className='vip-brand-sub'>畅玩月卡会员</Text>
-              </View>
-            </View>
-            <View className='vip-status-badge'>
-              <View className='pulse-gold-dot' />
-              <Text>特权生效中</Text>
-            </View>
-          </View>
-
-          <View className='vip-body'>
-            <View className='vip-privilege-info'>
-              <Text className='privilege-highlight'>整月每日进店免扣费</Text>
-              <Text className='privilege-detail'>出示此页面即可直接进店</Text>
-            </View>
-
-            <View className='vip-days-box'>
-              <Text className='days-val'>{tcgDays}</Text>
-              <Text className='days-unit'>天剩余</Text>
-            </View>
-          </View>
-        </View>
+        <PassCard
+          title='TCG VIP PASS'
+          subTitle='畅玩月卡会员'
+          watermark='VIP PASS'
+          icon='👑'
+          days={tcgDays}
+          mainDesc='整月每日进店免扣费'
+          subDesc='出示此页面即可直接进店'
+        />
       )}
 
       {/* 2. 今日畅玩状态控制台 (未开启 vs 已开启) */}

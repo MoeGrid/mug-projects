@@ -1,0 +1,159 @@
+/* 通用尊享 VIP PASS 卡片样式 - 金黄黑金风格 */
+
+.common-vip-pass-card {
+  position: relative;
+  border-radius: 28px;
+  padding: 28px 24px 22px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #181926 0%, #2b2438 50%, #3d2f24 100%);
+  border: 2px solid rgba(255, 215, 0, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  box-sizing: border-box;
+
+  .vip-watermark {
+    position: absolute;
+    right: -10px;
+    bottom: 4px;
+    font-size: 72px;
+    font-weight: 900;
+    font-style: italic;
+    color: rgba(255, 215, 0, 0.05);
+    pointer-events: none;
+    letter-spacing: 2px;
+  }
+
+  .vip-shimmer {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 215, 0, 0.08),
+      rgba(255, 234, 167, 0.18),
+      transparent
+    );
+    transform: skewX(-25deg);
+    animation: vipPassShimmer 4s infinite ease-in-out;
+    pointer-events: none;
+  }
+
+  .vip-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .vip-brand {
+      display: flex;
+      align-items: center;
+
+      .vip-crown {
+        font-size: 34px;
+        margin-right: 12px;
+      }
+
+      .vip-brand-text {
+        display: flex;
+        flex-direction: column;
+
+        .vip-brand-title {
+          font-size: 28px;
+          font-weight: 800;
+          color: #ffd700;
+          letter-spacing: 1px;
+        }
+
+        .vip-brand-sub {
+          font-size: 19px;
+          color: rgba(255, 234, 167, 0.7);
+          margin-top: 2px;
+        }
+      }
+    }
+
+    .vip-status-badge {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      padding: 6px 16px;
+      border-radius: 20px;
+      color: #ffd700;
+      font-size: 21px;
+      font-weight: 700;
+
+      .pulse-gold-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffd700;
+        margin-right: 8px;
+        box-shadow: 0 0 8px #ffd700;
+      }
+    }
+  }
+
+  .vip-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-top: 24px;
+
+    .vip-privilege-info {
+      display: flex;
+      flex-direction: column;
+
+      .privilege-highlight {
+        font-size: 30px;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      .privilege-detail {
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 4px;
+      }
+    }
+
+    .vip-days-box {
+      display: flex;
+      align-items: baseline;
+      background: rgba(255, 215, 0, 0.12);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      padding: 6px 16px;
+      border-radius: 16px;
+
+      .days-val {
+        font-size: 42px;
+        font-weight: 900;
+        color: #ffd700;
+        font-family: 'DIN Alternate', sans-serif;
+      }
+
+      .days-unit {
+        font-size: 20px;
+        color: #ffeaa7;
+        margin-left: 6px;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+@keyframes vipPassShimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 180%;
+  }
+}
