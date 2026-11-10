@@ -2,7 +2,7 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { db } from '../../db/client.js';
-import { insertCoin } from '../../services/mqtt.js';
+import { insertCoin, isDeviceOnline } from '../../services/mqtt.js';
 import { userAuth } from '../../utils/middleware.js';
 import { body, zInt } from '../../utils/validator.js';
 import { AppError, ok } from '../../utils/responses.js';
@@ -139,6 +139,13 @@ arcadeRouter.post('/coins/remote-insert', async (c) => {
       throw new AppError('余额不足!');
     }
 
+    // 1. 先通过 EMQX 确认设备是否在线
+    const online = await isDeviceOnline(device.client_id);
+    if (!online) {
+      throw new AppError('设备不在线!');
+    }
+
+    // 2. 向 MQTT 发布投币指令并等待回执
     const msgId = nextMsgId();
     let resp = null;
     try {
@@ -150,13 +157,19 @@ arcadeRouter.post('/coins/remote-insert', async (c) => {
     if (!resp || resp.id !== msgId) {
       throw new AppError('出币超时，请重试');
     }
-    if (resp.state !== 1) {
-      throw new AppError('投币失败');
+
+    // 3. 按照设备回复的结果状态码进行判断与结算
+    const code = resp.code ?? resp.state;
+    if (code === 1) {
+      await settleCoinInTrx(trx, user, device, operatorId);
+      return c.json(ok('投币成功'));
+    } else if (code === 2) {
+      throw new AppError('设备当前不能投币!');
+    } else if (code === 3) {
+      throw new AppError('投币失败! 未知原因!');
+    } else {
+      throw new AppError('投币失败! 响应错误!');
     }
-
-    await settleCoinInTrx(trx, user, device, operatorId);
-
-    return c.json(ok('投币成功'));
   });
 });
 

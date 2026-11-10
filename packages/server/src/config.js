@@ -61,6 +61,12 @@ export const config = {
     clientId: str('MQTT_CLIENT_ID', 'mug-backend'),
   },
 
+  emqx: {
+    host: str('EMQX_HOST', 'http://emqx.tx01.misaka-net.com'),
+    key: str('EMQX_KEY', ''),
+    secret: str('EMQX_SECRET', ''),
+  },
+
   fs: {
     publicRoot: str('STORAGE_ROOT', 'public/storage'),
   },

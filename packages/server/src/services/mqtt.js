@@ -42,6 +42,49 @@ export function endMqtt() {
   }
 }
 
+/**
+ * 通过 EMQX API 检测设备客户端是否在线（对应老项目 EMQXApi::getClient）
+ * @param {string} clientId 客户端ID
+ * @returns {Promise<boolean>}
+ */
+export async function isDeviceOnline(clientId) {
+  if (!clientId) return false;
+  // 若未配置 EMQX Key/Secret，降级放行（避免本地开发或未配置时直接阻断）
+  if (!config.emqx?.host || !config.emqx?.key || !config.emqx?.secret) {
+    return true;
+  }
+
+  try {
+    const baseUrl = config.emqx.host.replace(/\/+$/, '');
+    const url = `${baseUrl}/api/v5/clients/${encodeURIComponent(clientId)}`;
+    const authHeader =
+      'Basic ' + Buffer.from(`${config.emqx.key}:${config.emqx.secret}`).toString('base64');
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3500);
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: authHeader,
+        Accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+
+    if (res.status === 200) {
+      const data = await res.json();
+      // EMQX v5 中客户端在线标志为 connected: true
+      return Boolean(data?.connected ?? true);
+    }
+    return false;
+  } catch (err) {
+    console.error(`EMQX 设备在线检查失败 [${clientId}]:`, err.message);
+    return false;
+  }
+}
+
 /** 直连投币指令 */
 export async function insertCoin(deviceId, data, timeoutMs = 5000) {
   if (!client || !client.connected) {
