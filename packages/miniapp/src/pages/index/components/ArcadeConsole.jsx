@@ -24,7 +24,7 @@ export default function ArcadeConsole({
         icon='⚡'
         days={days}
         mainDesc='全机台投币免扣余额'
-        subDesc='直接刷卡投币 · 尽情畅玩'
+        subDesc='投币免费 · 尽情畅玩'
         showWhenZero={false}
       />
 
@@ -110,6 +110,12 @@ export default function ArcadeConsole({
           <Text className='rule-badge'>耳机插孔</Text>
           <Text className='rule-text'>
             机台支持 3.5mm 标准耳机插孔，建议自备耳机获得更佳听感；离场时请随身带好手机、卡包等随身财物。
+          </Text>
+        </View>
+        <View className='rule-item'>
+          <Text className='rule-badge'>离场关照</Text>
+          <Text className='rule-text'>
+            本店为无人值守空间，离开时若店内无其他人，请关闭所有机器、灯光、空调，并锁好大门。
           </Text>
         </View>
       </View>
