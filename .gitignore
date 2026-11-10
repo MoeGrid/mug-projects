@@ -12,6 +12,9 @@ dist-weapp
 .env.local
 .env.*.local
 *.pem
+*.key
+private.*.key
+preview.jpg
 
 # Editor & System files
 .idea

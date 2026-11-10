@@ -1,8 +1,30 @@
+import fs from 'fs'
 import path from 'path'
 import { defineConfig } from '@tarojs/cli'
 
 import devConfig from './dev'
 import prodConfig from './prod'
+
+// 读取小程序 package.json 版本号
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf-8'))
+const WEAPP_APPID = process.env.MINI_APPID || 'wx31e78bc38118667b'
+
+// 智能探测微信 CI 上传私钥路径 (优先环境变量，其次根目录或 config 目录下的 key 文件)
+function resolvePrivateKeyPath() {
+  if (process.env.MINI_KEY_PATH && fs.existsSync(process.env.MINI_KEY_PATH)) {
+    return process.env.MINI_KEY_PATH
+  }
+  const candidates = [
+    path.resolve(__dirname, '..', `private.${WEAPP_APPID}.key`),
+    path.resolve(__dirname, '..', 'private.key'),
+    path.resolve(__dirname, `private.${WEAPP_APPID}.key`),
+    path.resolve(__dirname, 'private.key'),
+  ]
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate
+  }
+  return path.resolve(__dirname, '..', `private.${WEAPP_APPID}.key`)
+}
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig(async (merge, { command, mode }) => {
@@ -21,7 +43,19 @@ export default defineConfig(async (merge, { command, mode }) => {
     alias: {
       '@': path.resolve(__dirname, '..', 'src')
     },
-    plugins: [],
+    plugins: [
+      [
+        '@tarojs/plugin-mini-ci',
+        {
+          weapp: {
+            appid: WEAPP_APPID,
+            privateKeyPath: resolvePrivateKeyPath(),
+          },
+          version: process.env.MINI_VERSION || pkg.version || '1.0.0',
+          desc: process.env.MINI_DESC || `自动部署体验版 (${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })})`,
+        },
+      ],
+    ],
     defineConstants: {
     },
     copy: {

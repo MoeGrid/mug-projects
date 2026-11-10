@@ -13,7 +13,9 @@
     "build:weapp": "taro build --type weapp",
     "build:qq": "taro build --type qq",
     "dev:weapp": "npm run build:weapp -- --watch",
-    "dev:qq": "npm run build:qq -- --watch"
+    "dev:qq": "npm run build:qq -- --watch",
+    "ci:upload": "taro build --type weapp --upload",
+    "ci:preview": "taro build --type weapp --preview"
   },
   "browserslist": [
     "last 3 versions",
@@ -39,6 +41,7 @@
   "devDependencies": {
     "@babel/core": "^7.8.0",
     "@tarojs/cli": "4.3.2",
+    "@tarojs/plugin-mini-ci": "4.3.2",
     "@tarojs/vite-runner": "4.3.2",
     "@types/react": "^18.0.0",
     "@vitejs/plugin-react": "^4.1.0",

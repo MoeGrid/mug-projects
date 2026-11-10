@@ -9,6 +9,8 @@
     "dev:server": "pnpm --filter mug-server dev",
     "build:app": "pnpm --filter mug-miniapp build:weapp",
     "build:miniapp": "pnpm --filter mug-miniapp build:weapp",
+    "ci:upload": "pnpm --filter mug-miniapp ci:upload",
+    "ci:preview": "pnpm --filter mug-miniapp ci:preview",
     "start": "pnpm --filter mug-server start",
     "start:server": "pnpm --filter mug-server start",
     "serve:server": "pnpm --filter mug-server start"
