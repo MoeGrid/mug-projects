@@ -193,20 +193,6 @@ tcgRouter.post('/passes/buy-monthly', async (c) => {
       remark: `开通/续费TCG畅玩月卡30天(扣除¥${monthPrice})`,
     });
 
-    // 3. 若今日尚未开启上机，自动免费激活今日会话
-    const activeSession = await findActiveTcgSession(trx, user.id);
-    let sessionActivated = false;
-    if (!activeSession) {
-      const sessionExpire = calculateExpire(null, 1);
-      await insertTcgRecord(trx, {
-        user_id: user.id,
-        cost: 0,
-        is_monthly: 1,
-        expire_time: sessionExpire,
-      });
-      sessionActivated = true;
-    }
-
     const remainingDays = daysFromExpire(newExpire);
 
     return c.json(
@@ -215,7 +201,6 @@ tcgRouter.post('/passes/buy-monthly', async (c) => {
         balance: toMoney(newBalance),
         tcg_days: remainingDays,
         tcg_expire_date: newExpire,
-        session_activated: sessionActivated,
         message: '月卡办理成功！有效期内每日进店均免扣费',
       })
     );
