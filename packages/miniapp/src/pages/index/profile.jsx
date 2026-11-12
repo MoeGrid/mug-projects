@@ -195,9 +195,6 @@ export default function ProfilePage() {
             onChooseAvatar={handleChooseAvatar}
           >
             <Image className='avatar-img' src={avatarUrl} mode='aspectFill' />
-            <View className='camera-badge'>
-              <Text className='camera-icon'>📷</Text>
-            </View>
           </Button>
           <Text className='avatar-hint'>点击更换头像</Text>
         </View>
