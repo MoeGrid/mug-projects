@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { wechatLogin, getWalletAssets } from '@/api'
+import { wechatLogin, getWalletAssets, getUserProfile } from '@/api'
 
 class AuthStore {
   constructor() {
@@ -112,6 +112,18 @@ class AuthStore {
     const res = await getWalletAssets()
     this.setAvailable(res)
     return res
+  }
+
+  async refreshUser() {
+    try {
+      const res = await getUserProfile()
+      if (res) {
+        this.setUser({ ...this.user, ...res })
+      }
+      return res
+    } catch (e) {
+      return null
+    }
   }
 }
 
