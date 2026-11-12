@@ -219,13 +219,6 @@ export default function ProfilePage() {
           </View>
         </View>
 
-        {user?.phone && (
-          <View className='form-item'>
-            <Text className='form-label'>绑定手机</Text>
-            <Text className='form-static-text'>{user.phone}</Text>
-          </View>
-        )}
-
         <View className='action-row'>
           <View className='btn-save btn-press-effect' onClick={handleSaveProfile}>
             <Text>保存基本资料</Text>
