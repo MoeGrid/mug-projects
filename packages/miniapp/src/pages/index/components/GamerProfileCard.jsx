@@ -15,13 +15,11 @@ export default function GamerProfileCard({
       <View className='gamer-header'>
         <View className='avatar-wrapper btn-press-effect' onClick={onOpenProfile}>
           <Image className='avatar-img' src={userAvatar} mode='aspectFill' />
-          <View className='avatar-edit-badge'>✎</View>
         </View>
 
         <View className='info-wrapper'>
           <View className='nickname-row btn-press-effect' onClick={onOpenProfile}>
             <Text className='nickname-text'>{user?.nickname || '玩家'}</Text>
-            <Text className='edit-pen'>✎</Text>
           </View>
           <View className='uid-tag'>
             <View className='dot' />
