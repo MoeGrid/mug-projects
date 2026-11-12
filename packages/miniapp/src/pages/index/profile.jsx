@@ -173,9 +173,22 @@ export default function ProfilePage() {
 
   return (
     <View className='page-profile'>
-      {/* 头部个人基本资料卡片 */}
-      <View className='profile-hero-card'>
-        <View className='avatar-wrapper'>
+      {/* 玩家基本信息卡片（头像、昵称与保存一体化） */}
+      <View className='section-card base-profile-card'>
+        <View className='card-title-row'>
+          <Text className='card-title'>基本信息</Text>
+          <View className='user-meta-row'>
+            <Text className='uid-badge'>UID: {user?.id || '-'}</Text>
+            {Boolean(user?.is_admin) && (
+              <AtTag size='small' circle customStyle={{ backgroundColor: '#ff9900', color: '#fff' }}>
+                管理员
+              </AtTag>
+            )}
+          </View>
+        </View>
+
+        {/* 头像更换 */}
+        <View className='avatar-upload-section'>
           <Button
             className='avatar-button btn-press-effect'
             openType='chooseAvatar'
@@ -189,22 +202,7 @@ export default function ProfilePage() {
           <Text className='avatar-hint'>点击更换头像</Text>
         </View>
 
-        <View className='user-meta-row'>
-          <Text className='uid-badge'>UID: {user?.id || '-'}</Text>
-          {Boolean(user?.is_admin) && (
-            <AtTag size='small' circle customStyle={{ backgroundColor: '#ff9900', color: '#fff' }}>
-              管理员
-            </AtTag>
-          )}
-        </View>
-      </View>
-
-      {/* 昵称及保存表单 */}
-      <View className='section-card'>
-        <View className='card-title-row'>
-          <Text className='card-title'>基本信息</Text>
-        </View>
-
+        {/* 昵称编辑 */}
         <View className='form-item'>
           <Text className='form-label'>玩家昵称</Text>
           <View className='input-wrap'>
@@ -219,6 +217,7 @@ export default function ProfilePage() {
           </View>
         </View>
 
+        {/* 统一保存按钮 */}
         <View className='action-row'>
           <View className='btn-save btn-press-effect' onClick={handleSaveProfile}>
             <Text>保存基本资料</Text>
