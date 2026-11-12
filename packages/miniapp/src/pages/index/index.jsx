@@ -27,7 +27,6 @@ import GamerProfileCard from './components/GamerProfileCard'
 import ModeSwitcher from './components/ModeSwitcher'
 import ArcadeConsole from './components/ArcadeConsole'
 import CardPassSection from './components/CardPassSection'
-import ProfileEditModal from './components/ProfileEditModal'
 
 import './index.scss'
 
@@ -65,12 +64,6 @@ export default function IndexPage() {
   const [pickerValue, setPickerValue] = useState([0, 0])
   const [selectedGroup, setSelectedGroup] = useState(null)
   const [selectedDevice, setSelectedDevice] = useState(null)
-
-  // 个人资料修改弹窗
-  const [profileModalVisible, setProfileModalVisible] = useState(false)
-  const [profileAvatar, setProfileAvatar] = useState('')
-  const [profileAvatarUrl, setProfileAvatarUrl] = useState('')
-  const [profileNickname, setProfileNickname] = useState('')
 
   // 账号封禁弹窗
   const [banModalVisible, setBanModalVisible] = useState(false)
@@ -273,6 +266,7 @@ export default function IndexPage() {
       return
     }
     if (authStore.token && !authStore.user?.is_ban) {
+      authStore.refreshUser()
       silentRefresh()
     }
   })
@@ -399,48 +393,8 @@ export default function IndexPage() {
     }
   }
 
-  // 个人资料相关
-  const handleChooseAvatar = async (e) => {
-    const avatarUrl = e.detail.avatarUrl
-    setProfileAvatarUrl(avatarUrl)
-    showLoading('上传头像中...')
-    try {
-      const res = await uploadImage(avatarUrl)
-      setProfileAvatar(res.file)
-      showSuccess('头像已上传')
-    } catch (err) {
-      showError(err.message || '头像上传失败')
-    }
-  }
-
-  const handleSaveProfile = async () => {
-    if (!profileNickname.trim()) {
-      showText('昵称不能为空')
-      return
-    }
-    showLoading('保存资料中...')
-    try {
-      await updateUserProfile({
-        nickname: profileNickname,
-        avatar: profileAvatar,
-      })
-      await authStore.refreshUser()
-      setProfileModalVisible(false)
-      showSuccess('资料保存成功')
-    } catch (e) {
-      showError(e.message || '保存失败')
-    }
-  }
-
-  const openProfileModal = () => {
-    setProfileNickname(user?.nickname || '')
-    setProfileAvatar(user?.avatar || '')
-    setProfileAvatarUrl(user?.avatar ? uploadUrl(user.avatar) : DEFAULT_AVATAR)
-    setProfileModalVisible(true)
-  }
-
-  const closeProfileModal = () => {
-    setProfileModalVisible(false)
+  const handleOpenProfile = () => {
+    Taro.navigateTo({ url: '/pages/index/profile' })
   }
 
   const handleExit = () => {
@@ -454,7 +408,7 @@ export default function IndexPage() {
         user={user}
         available={available}
         userAvatar={userAvatar}
-        onOpenProfile={openProfileModal}
+        onOpenProfile={handleOpenProfile}
       />
 
       {/* 2. 模式切换双核胶囊 (街机投币 ⟷ 卡牌通行证) */}
@@ -499,17 +453,6 @@ export default function IndexPage() {
           <Text>TERMINAL VERSION {accountInfo}</Text>
         </View>
       )}
-
-      {/* 完善个人资料弹窗 */}
-      <ProfileEditModal
-        visible={profileModalVisible}
-        nickname={profileNickname}
-        avatarUrl={profileAvatarUrl}
-        onClose={closeProfileModal}
-        onNicknameChange={setProfileNickname}
-        onChooseAvatar={handleChooseAvatar}
-        onSave={handleSaveProfile}
-      />
 
       {/* 账号封禁弹窗 */}
       <AtModal isOpened={banModalVisible} closeOnClickOverlay={false}>
