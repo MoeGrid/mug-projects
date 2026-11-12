@@ -1,11 +1,11 @@
 // 运营管理领域路由
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { sql } from 'kysely';
-import { db } from '../../db/client.js';
-import { adminAuth } from '../../utils/middleware.js';
-import { body, zFlag, zInt, zNum } from '../../utils/validator.js';
-import { AppError, ok } from '../../utils/responses.js';
+import {Hono} from 'hono';
+import {z} from 'zod';
+import {sql} from 'kysely';
+import {db} from '../../db/client.js';
+import {adminAuth} from '../../utils/middleware.js';
+import {body, zFlag, zInt, zNum} from '../../utils/validator.js';
+import {AppError, ok} from '../../utils/responses.js';
 import {
   calculateExpire,
   daysFromExpire,
@@ -14,9 +14,9 @@ import {
   dateTimeStr,
   tsNow,
 } from '../../utils/date.js';
-import { addMoney, toMoney } from '../../utils/money.js';
-import { insertBalanceLog } from '../../models/balance_log.js';
-import { findUser, updateUser, withDays } from '../../models/user.js';
+import {addMoney, toMoney} from '../../utils/money.js';
+import {insertBalanceLog} from '../../models/balance_log.js';
+import {findUser, updateUser, withDays} from '../../models/user.js';
 
 export const adminRouter = new Hono();
 
@@ -35,8 +35,10 @@ adminRouter.get('/finance/summary', async (c) => {
   const rechargeRow = await db
     .selectFrom('mug_order')
     .select([
-      sql`COALESCE(SUM(CASE WHEN pay_time >= ${todayStart} THEN amount ELSE 0 END), 0)`.as('today_recharge'),
-      sql`COALESCE(SUM(CASE WHEN pay_time >= ${monthStart} THEN amount ELSE 0 END), 0)`.as('month_recharge'),
+      sql`COALESCE
+          (SUM(CASE WHEN pay_time >= ${todayStart} THEN amount ELSE 0 END), 0)`.as('today_recharge'),
+      sql`COALESCE
+          (SUM(CASE WHEN pay_time >= ${monthStart} THEN amount ELSE 0 END), 0)`.as('month_recharge'),
     ])
     .where('status', '=', 1)
     .executeTakeFirst();
@@ -45,8 +47,10 @@ adminRouter.get('/finance/summary', async (c) => {
   const consumeRow = await db
     .selectFrom('mug_balance_log')
     .select([
-      sql`COALESCE(SUM(CASE WHEN create_time >= ${todayStart} THEN ABS(change_amount) ELSE 0 END), 0)`.as('today_consume'),
-      sql`COALESCE(SUM(CASE WHEN create_time >= ${monthStart} THEN ABS(change_amount) ELSE 0 END), 0)`.as('month_consume'),
+      sql`COALESCE
+      (SUM(CASE WHEN create_time >= ${todayStart} THEN ABS(change_amount) ELSE 0 END), 0)`.as('today_consume'),
+      sql`COALESCE
+      (SUM(CASE WHEN create_time >= ${monthStart} THEN ABS(change_amount) ELSE 0 END), 0)`.as('month_consume'),
     ])
     .where('change_amount', '<', 0)
     .executeTakeFirst();
@@ -54,7 +58,8 @@ adminRouter.get('/finance/summary', async (c) => {
   // 3. 当前有效营业周期内在场 TCG 畅玩人数
   const tcgActiveRow = await db
     .selectFrom('mug_tcg_record')
-    .select(sql`COUNT(DISTINCT user_id)`.as('active_count'))
+    .select(sql`COUNT
+        (DISTINCT user_id)`.as('active_count'))
     .where('expire_time', '>', now)
     .executeTakeFirst();
 
@@ -79,7 +84,7 @@ adminRouter.get('/finance/recharges', async (c) => {
 
   const countRow = await db
     .selectFrom('mug_order')
-    .select(({ fn }) => fn.countAll().as('cnt'))
+    .select(({fn}) => fn.countAll().as('cnt'))
     .where('status', '=', 1)
     .executeTakeFirst();
   const total = Number(countRow?.cnt ?? 0);
@@ -130,7 +135,7 @@ adminRouter.get('/finance/consumptions', async (c) => {
 
   const countRow = await db
     .selectFrom('mug_balance_log')
-    .select(({ fn }) => fn.countAll().as('cnt'))
+    .select(({fn}) => fn.countAll().as('cnt'))
     .where('change_amount', '<', 0)
     .executeTakeFirst();
   const total = Number(countRow?.cnt ?? 0);
@@ -211,7 +216,7 @@ adminRouter.get('/tcg/active-sessions', async (c) => {
           is_monthly: Boolean(item.is_monthly),
           create_time: item.create_time,
           expire_time: item.expire_time,
-          has_monthly_pass: monthlyDays > 0,
+          has_tcg_pass: monthlyDays > 0,
           tcg_days: monthlyDays,
         };
       })
@@ -244,7 +249,7 @@ adminRouter.get('/users', async (c) => {
     return q;
   };
 
-  const totalRow = await buildQuery().select(({ fn }) => fn.countAll().as('cnt')).executeTakeFirst();
+  const totalRow = await buildQuery().select(({fn}) => fn.countAll().as('cnt')).executeTakeFirst();
   const total = Number(totalRow?.cnt ?? 0);
 
   const users = await buildQuery()
@@ -286,7 +291,7 @@ adminRouter.patch('/users/:id', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   if (!id || Number.isNaN(id)) throw new AppError('用户ID无效');
 
-  const { is_admin, is_ban, phone, qq, remark } = await body(
+  const {is_admin, is_ban, phone, qq, remark} = await body(
     c,
     z.object({
       is_admin: zFlag('is_admin').nullish(),
@@ -319,7 +324,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
   const id = parseInt(c.req.param('id'), 10);
   if (!id || Number.isNaN(id)) throw new AppError('用户ID无效');
 
-  const { type, num } = await body(
+  const {type, num} = await body(
     c,
     z
       .object({
@@ -328,10 +333,10 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
       })
       .superRefine((v, ctx) => {
         if (v.type !== 1 && v.type !== 2 && v.type !== 3) {
-          ctx.addIssue({ code: 'custom', message: '类型取值错误（1余额，2街机MUG天数，3TCG月卡天数）', path: ['type'] });
+          ctx.addIssue({code: 'custom', message: '类型取值错误', path: ['type']});
         }
         if ((v.type === 2 || v.type === 3) && !Number.isInteger(v.num)) {
-          ctx.addIssue({ code: 'custom', message: '天数必须是整数', path: ['num'] });
+          ctx.addIssue({code: 'custom', message: '天数必须是整数', path: ['num']});
         }
       })
   );
@@ -346,7 +351,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
       if (numMoney === 0) throw new AppError('调配金额不能为0');
 
       const balance = addMoney(user.balance, numMoney);
-      await trx.updateTable('mug_user').set({ balance, update_time: tsNow() }).where('id', '=', user.id).execute();
+      await trx.updateTable('mug_user').set({balance, update_time: tsNow()}).where('id', '=', user.id).execute();
       await insertBalanceLog(trx, {
         user_id: user.id,
         change_amount: numMoney,
@@ -354,7 +359,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         type: 4,
         remark: numMoney >= 0 ? `管理员补款 +¥${toMoney(numMoney)}` : `管理员扣款 -¥${toMoney(Math.abs(numMoney))}`,
       });
-      return c.json(ok({ balance: toMoney(balance), message: '余额调配成功' }));
+      return c.json(ok({balance: toMoney(balance), message: '余额调配成功'}));
     }
 
     if (type === 2) {
@@ -365,7 +370,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         update_time: tsNow(),
       }).where('id', '=', user.id).execute();
       const arcadeDays = daysFromExpire(newExpire);
-      return c.json(ok({ arcade_days: arcadeDays, arcade_expire_date: newExpire, message: 'MUG天数调配成功' }));
+      return c.json(ok({arcade_days: arcadeDays, arcade_expire_date: newExpire, message: 'MUG PASS 天数调配成功'}));
     }
 
     if (type === 3) {
@@ -376,7 +381,7 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
         update_time: tsNow(),
       }).where('id', '=', user.id).execute();
       const tcgDays = daysFromExpire(newExpire);
-      return c.json(ok({ tcg_days: tcgDays, tcg_expire_date: newExpire, message: 'TCG月卡天数调配成功' }));
+      return c.json(ok({tcg_days: tcgDays, tcg_expire_date: newExpire, message: 'TCG PASS 天数调配成功'}));
     }
   });
 });

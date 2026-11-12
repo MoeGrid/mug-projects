@@ -69,8 +69,8 @@ export const config = {
 
   face: {
     host: str('FACE_HOST', 'http://face.tx01.misaka-net.com'),
-    apiKey: str('FACE_API_KEY', '5g5EEqf88ZhCVTB1lqSOyxsWUWxeNBMa'),
-    collection: str('FACE_COLLECTION', 'test'),
+    apiKey: str('FACE_API_KEY', ''),
+    collection: str('FACE_COLLECTION', 'mug'),
   },
 
   fs: {

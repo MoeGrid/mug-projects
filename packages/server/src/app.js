@@ -21,7 +21,12 @@ app.onError((err, c) => {
     return err.getResponse();
   }
   if (err instanceof AppError) {
-    return c.json({ code: 0, msg: err.message, data: config.app.debug ? err.stack : null });
+    return c.json({
+      code: 0,
+      msg: err.message,
+      data: config.app.debug ? err.stack : null,
+      ...(err.extra || {}),
+    });
   }
   console.error('[UNCAUGHT_ERROR]:', err);
   return c.json({ code: 0, msg: config.app.debug ? err.message : '页面错误！请稍后再试～' }, 500);

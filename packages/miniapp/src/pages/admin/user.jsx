@@ -197,11 +197,11 @@ export default function AdminUserPage() {
             </View>
           </View>
 
-          {/* 资产 3: 卡牌 TCG 月卡 */}
+          {/* 资产 3: 卡牌 TCG PASS */}
           <View className='asset-card'>
             <View className='card-left'>
               <View className='title-with-tag'>
-                <Text className='asset-name'>🃏 卡牌 TCG 月卡</Text>
+                <Text className='asset-name'>🃏 卡牌 TCG PASS</Text>
                 {entity.tcg_days > 0 ? (
                   <AtTag size='small' circle customStyle={{ backgroundColor: '#f59e0b', color: '#fff' }}>
                     生效中
@@ -333,7 +333,7 @@ export default function AdminUserPage() {
           <AtModalHeader>
             {modalType === 1 && '调配账户余额 (元)'}
             {modalType === 2 && '调配 MUG 畅玩天数'}
-            {modalType === 3 && '调配 TCG 月卡天数'}
+            {modalType === 3 && '调配 TCG PASS 天数'}
           </AtModalHeader>
           <AtModalContent>
             <View className='modal-adjust-body'>

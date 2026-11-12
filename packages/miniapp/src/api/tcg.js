@@ -1,24 +1,24 @@
 import { get, post } from './client'
 
 /**
- * 获取 TCG 卡牌通行证配置与状态
+ * 获取 TCG 专区配置与状态（包含今日入场与 TCG PASS 状态）
  */
 export function getTcgPassOptions() {
   return get('/api/v1/tcg/passes/options')
 }
 
 /**
- * 开启今日畅玩（扣除单日余额，次日早 06:00 自动到期；月卡或今日已开启则免扣费）
+ * TCG 进店入场
  */
-export function activateTcgPass() {
-  return post('/api/v1/tcg/passes/activate')
+export function tcgEntry() {
+  return post('/api/v1/tcg/entry')
 }
 
 /**
- * 开通 / 续费 TCG 畅玩月卡（未来 30 天每日畅玩免扣费）
+ * 办理 / 续费 30 天 TCG PASS
  */
-export function buyTcgMonthlyPass() {
-  return post('/api/v1/tcg/passes/buy-monthly')
+export function buyTcgPass() {
+  return post('/api/v1/tcg/passes/buy')
 }
 
 /**
@@ -27,3 +27,6 @@ export function buyTcgMonthlyPass() {
 export function getTcgEvents() {
   return get('/api/v1/tcg/events')
 }
+
+
+

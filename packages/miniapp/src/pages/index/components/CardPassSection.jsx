@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { getTcgPassOptions, activateTcgPass, buyTcgMonthlyPass } from '@/api'
+import { getTcgPassOptions, tcgEntry, buyTcgPass } from '@/api'
 import { authStore } from '@/stores/auth'
 import PassCard from './PassCard'
 import './CardPassSection.scss'
@@ -20,8 +20,8 @@ export default function CardPassSection({
 }) {
   const [localPricing, setLocalPricing] = useState({ day_price: 15, month_price: 180 })
   const [localStatus, setLocalStatus] = useState({
-    isActiveToday: false,
-    hasMonthlyPass: false,
+    isEntryToday: false,
+    hasTcgPass: false,
     tcgDays: 0,
   })
   const [activating, setActivating] = useState(false)
@@ -41,8 +41,8 @@ export default function CardPassSection({
           })
         }
         setLocalStatus({
-          isActiveToday: Boolean(res.is_active_today),
-          hasMonthlyPass: Boolean(res.has_monthly_pass),
+          isEntryToday: Boolean(res.is_entry_today),
+          hasTcgPass: Boolean(res.has_tcg_pass),
           tcgDays: Number(res.tcg_days || 0),
         })
       }
@@ -61,45 +61,45 @@ export default function CardPassSection({
   const pricing = propPricing || localPricing
   const status = propStatus || localStatus
 
-  // 兜底结合 store 中的数据（以接口返回的 status 为准）
-  const tcgDays = status.hasMonthlyPass ? status.tcgDays : Number(available?.tcg_days || 0)
-  const hasMonthlyPass = status.hasMonthlyPass || tcgDays > 0
-  const isActiveToday = status.isActiveToday
+  // 结合 store 中的数据（以接口返回的 status 为准）
+  const tcgDays = status.hasTcgPass ? status.tcgDays : Number(available?.tcg_days || 0)
+  const hasTcgPass = status.hasTcgPass || tcgDays > 0
+  const isEntryToday = status.isEntryToday
 
   const currentBalance = Number(available?.balance || 0)
   const isBalanceEnoughForDay = currentBalance >= pricing.day_price
 
-  // 1. 点击【开启今日畅玩】（单日开通，扣除当天费用，次日凌晨 6 点自动结束；月卡用户免扣费）
-  const handleActivateToday = () => {
-    if (isActiveToday) {
-      if (hasMonthlyPass) {
-        showSuccess('您持有有效月卡，今日畅玩已生效中')
+  // 1. 点击【进店入场】（单日入场，扣除入场费，次日凌晨 6 点自动到期；TCG PASS 用户免扣费）
+  const handleEntryToday = () => {
+    if (isEntryToday) {
+      if (hasTcgPass) {
+        showSuccess('您持有有效 TCG PASS，今日已完成入场')
       } else {
-        showSuccess('今日畅玩特权已生效中，次日早 06:00 自动到期')
+        showSuccess('今日已完成入场登记，有效至次日早 06:00')
       }
       return
     }
 
-    // 若持有有效月卡，直接开启
-    if (hasMonthlyPass) {
+    // 若持有有效 TCG PASS，直接免费入场
+    if (hasTcgPass) {
       showDialog({
-        title: '开启今日畅玩',
-        content: '月卡特权生效中，本次免费，有效至次日早 06:00 自动结束。确认开启？',
-        confirmText: '立即开启',
+        title: '进店入场',
+        content: 'TCG PASS 特权生效中，本次免费入场，有效至次日早 06:00。确认入场？',
+        confirmText: '立即入场',
         cancelText: '取消',
         onConfirm: async () => {
           try {
             setActivating(true)
-            showLoading('正在开启...')
-            const res = await activateTcgPass()
+            showLoading('正在登记入场...')
+            const res = await tcgEntry()
             await authStore.refreshAvailable()
             await fetchStatus()
-            showSuccess(res.message || '今日畅玩已开启')
+            showSuccess(res.message || '入场成功，欢迎进店！')
             if (onRechargeSuccess) {
               onRechargeSuccess(res)
             }
           } catch (e) {
-            showError(e.message || '开启失败，请稍后重试')
+            showError(e.message || '入场登记失败，请稍后重试')
           } finally {
             setActivating(false)
           }
@@ -108,11 +108,11 @@ export default function CardPassSection({
       return
     }
 
-    // 非月卡用户：检查余额
+    // 非 TCG PASS 用户：检查余额
     if (!isBalanceEnoughForDay) {
       showDialog({
         title: '余额不足',
-        content: `余额不足以开启今日畅玩（需 ¥${pricing.day_price}），是否前往充值？`,
+        content: `余额不足以支付单日入场费（需 ¥${pricing.day_price}），是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -123,23 +123,23 @@ export default function CardPassSection({
     }
 
     showDialog({
-      title: '开启今日畅玩',
-      content: `确认开启今日畅玩？将扣除 ¥${pricing.day_price}，有效至次日早 06:00 自动结束。`,
-      confirmText: '立即开启',
+      title: '进店入场',
+      content: `确认进店入场？将扣除单日入场费 ¥${pricing.day_price}，有效至次日早 06:00 自动到期。`,
+      confirmText: '立即入场',
       cancelText: '取消',
       onConfirm: async () => {
         try {
           setActivating(true)
-          showLoading('正在开启...')
-          const res = await activateTcgPass()
+          showLoading('正在登记入场...')
+          const res = await tcgEntry()
           await authStore.refreshAvailable()
           await fetchStatus()
-          showSuccess(res.message || '开启成功')
+          showSuccess(res.message || '入场成功，欢迎进店！')
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
           }
         } catch (e) {
-          showError(e.message || '开启失败，请稍后重试')
+          showError(e.message || '入场失败，请稍后重试')
         } finally {
           setActivating(false)
         }
@@ -147,12 +147,12 @@ export default function CardPassSection({
     })
   }
 
-  // 2. 点击【开通 / 续费月卡】
+  // 2. 点击【办理 / 续费 TCG PASS】
   const handleOpenMonthlyModal = () => {
     if (currentBalance < pricing.month_price) {
       showDialog({
         title: '余额不足',
-        content: `余额不足以办理月卡（需 ¥${pricing.month_price}），是否前往充值？`,
+        content: `余额不足以开通 TCG PASS（需 ¥${pricing.month_price}），是否前往充值？`,
         confirmText: '立即充值',
         cancelText: '取消',
         onConfirm: () => {
@@ -163,17 +163,17 @@ export default function CardPassSection({
     }
 
     showDialog({
-      title: hasMonthlyPass ? '续费 TCG 畅玩月卡' : '开通 TCG 畅玩月卡',
-      content: `确认${hasMonthlyPass ? '续费' : '办理'} 30 天月卡？将扣除 ¥${pricing.month_price}，生效期内每日进店免扣费。`,
-      confirmText: hasMonthlyPass ? '确认续费' : '确认开通',
+      title: hasTcgPass ? '续费 TCG PASS' : '开通 TCG PASS',
+      content: `确认${hasTcgPass ? '续费' : '开通'} 30 天 TCG PASS？将扣除 ¥${pricing.month_price}，生效期内每日进店均免入场费。`,
+      confirmText: hasTcgPass ? '确认续费' : '确认开通',
       cancelText: '取消',
       onConfirm: async () => {
         try {
-          showLoading('正在办理月卡...')
-          const res = await buyTcgMonthlyPass()
+          showLoading('正在办理 TCG PASS...')
+          const res = await buyTcgPass()
           await authStore.refreshAvailable()
           await fetchStatus()
-          showSuccess(res.message || '月卡办理成功！')
+          showSuccess(res.message || 'TCG PASS 办理成功！')
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
           }
@@ -186,50 +186,50 @@ export default function CardPassSection({
 
   return (
     <View className='tcg-mode-container'>
-      {/* 1. 尊享月卡会员大卡（仅月卡用户展示） */}
-      {hasMonthlyPass && (
+      {/* 1. TCG PASS 大卡（仅持有 TCG PASS 用户展示） */}
+      {hasTcgPass && (
         <PassCard
-          title='TCG VIP PASS'
-          subTitle='畅玩月卡会员'
-          watermark='VIP PASS'
+          title='TCG PASS'
+          subTitle='通行证'
+          watermark='TCG PASS'
           icon='👑'
           days={tcgDays}
-          mainDesc='每日进店免扣费'
+          mainDesc='每日进店免入场费'
           subDesc='尽情畅玩'
         />
       )}
 
-      {/* 2. 今日畅玩状态控制台 (未开启 vs 已开启) */}
-      <View className={`today-console-card ${isActiveToday ? 'console-card-active' : ''}`}>
+      {/* 2. 进店入场状态控制台 (未入场 vs 已入场) */}
+      <View className={`today-console-card ${isEntryToday ? 'console-card-active' : ''}`}>
         <View className='console-header'>
           <View className='console-title-wrap'>
             <Text className='console-icon'>🎴</Text>
-            <Text className='console-title'>今日畅玩</Text>
+            <Text className='console-title'>TCG 入场</Text>
           </View>
           <View
             className={`console-status-pill ${
-              isActiveToday ? 'status-active' : 'status-inactive'
+              isEntryToday ? 'status-active' : 'status-inactive'
             }`}
           >
             <View className='status-dot' />
-            <Text>{isActiveToday ? '已开通 · 畅玩中' : '未开通'}</Text>
+            <Text>{isEntryToday ? '已入场' : '未入场'}</Text>
           </View>
         </View>
 
-        {!isActiveToday ? (
-          /* 未开通状态：展示价格、余额与开启按钮 */
+        {!isEntryToday ? (
+          /* 未入场状态：展示价格、余额与入场按钮 */
           <View className='inactive-content'>
             <View className='pricing-highlight-box'>
               <View className='pricing-left'>
                 <Text className='pricing-label'>
-                  {hasMonthlyPass ? '月卡畅玩' : '单日畅玩'}
+                  {hasTcgPass ? 'TCG PASS 特权' : '单日入场'}
                 </Text>
-                <Text className='pricing-auto-rule'>次日早 06:00 自动到期 · 无需操作</Text>
+                <Text className='pricing-auto-rule'>次日早 06:00 自动到期 · 无需额外操作</Text>
               </View>
               <View className='pricing-right'>
-                {hasMonthlyPass ? (
+                {hasTcgPass ? (
                   <Text className='amount' style={{ fontSize: '20px', color: '#2ed573' }}>
-                    免费
+                    免费入场
                   </Text>
                 ) : (
                   <>
@@ -245,19 +245,19 @@ export default function CardPassSection({
               className={`start-play-main-btn btn-press-effect ${
                 activating ? 'disabled' : ''
               }`}
-              onClick={handleActivateToday}
+              onClick={handleEntryToday}
             >
               <View className='btn-main-title'>
                 <Text className='bolt-icon'>⚡</Text>
-                <Text>{hasMonthlyPass ? '开启今日畅玩' : '开启今日畅玩'}</Text>
+                <Text>{hasTcgPass ? 'TCG PASS 免费入场' : '确认进店入场'}</Text>
               </View>
             </View>
           </View>
         ) : (
-          /* 已开通状态：准入凭证 */
+          /* 已入场状态：准入凭证 */
           <View className='active-content'>
             <View className='active-banner'>
-              <Text className='banner-title'>✨ 今日已开通 · 进店畅玩</Text>
+              <Text className='banner-title'>✨ 今日已完成入场</Text>
               <View className='expire-badge'>
                 <Text>有效至明日 06:00</Text>
               </View>
@@ -266,23 +266,23 @@ export default function CardPassSection({
             <View className='active-auto-footer'>
               <Text className='clock-icon'>⏰</Text>
               <Text className='auto-desc'>
-                统一于次日早 06:00 自动结束，当天无需重复操作
+                统一于次日早 06:00 自动到期，当天无需重复登记
               </Text>
             </View>
           </View>
         )}
       </View>
 
-      {/* 3. 开通 / 续费 TCG 畅玩月卡 */}
+      {/* 3. 开通 / 续费 TCG PASS */}
       <View className='monthly-upgrade-card'>
-        <View className='card-top-tag'>30天免扣费</View>
+        <View className='card-top-tag'>30天免入场费</View>
         <View className='upgrade-header-row'>
           <View className='upgrade-title-wrap'>
-            <Text className='upgrade-main-title'>TCG 畅玩月卡 (30天)</Text>
+            <Text className='upgrade-main-title'>TCG PASS (30天)</Text>
             <Text className='upgrade-sub-title'>
-              {hasMonthlyPass
-                ? `当前月卡剩余 ${tcgDays} 天，可随时顺延续费`
-                : '开通后 30 天内每日进店均免扣费'}
+              {hasTcgPass
+                ? `当前 TCG PASS 剩余 ${tcgDays} 天，可随时顺延续费`
+                : '开通后 30 天内每日进店均免入场费'}
             </Text>
           </View>
           <View className='upgrade-price-wrap'>
@@ -297,7 +297,7 @@ export default function CardPassSection({
           onClick={handleOpenMonthlyModal}
         >
           <Text>
-            {hasMonthlyPass ? '续费 30 天月卡' : '立即开通月卡'}
+            {hasTcgPass ? '续费 30 天 TCG PASS' : '立即开通 TCG PASS'}
           </Text>
         </View>
       </View>
@@ -317,7 +317,7 @@ export default function CardPassSection({
         <View className='rule-item'>
           <Text className='rule-badge'>自动截止</Text>
           <Text className='rule-text'>
-            每日畅玩统一于次日早 06:00 自动到期结束，期间自由畅玩。
+            入场状态统一于次日早 06:00 自动到期结束，当天无需重复登记。
           </Text>
         </View>
         <View className='rule-item'>
