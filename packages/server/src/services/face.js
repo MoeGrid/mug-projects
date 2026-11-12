@@ -3,7 +3,7 @@ import { config } from '../config.js';
 import { AppError } from '../utils/responses.js';
 
 export function toPersonId(userId) {
-  return String(userId).padStart(7, '0');
+  return String(userId);
 }
 
 function getAuthHeaders() {
