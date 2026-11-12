@@ -58,7 +58,7 @@ export function adminUpdateUser(user) {
 /**
  * 管理员调配用户资产（余额加减/MUG天数加减/TCG天数加减）
  * @param {object} data { id, type, num }
- * type: 1余额, 2音游MUG天数, 3卡牌TCG月卡天数
+ * type: 1余额, 2音游MUG天数, 3卡牌TCG天数
  * num: 正数为加，负数为减
  */
 export function adminAdjustBalance(data) {

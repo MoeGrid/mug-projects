@@ -186,23 +186,95 @@ export async function searchFace(imageBuffer, filename = 'face.jpg', options = {
   }
 
   // 处理失败原因 (如无人脸、多张脸、假脸攻击等)
-  const reason = resData?.error?.details?.rejected_images?.[0]?.reason || resData?.error?.details?.liveness?.reason;
-  if (reason === 'no_face' || reason === 'no_faces') {
-    throw new AppError('未在照片中检测到有效人脸，请正对摄像头重试');
+  const errCode = resData?.error?.code || '';
+  const livenessReason = resData?.error?.details?.liveness?.reason || '';
+  const reason = resData?.error?.details?.rejected_images?.[0]?.reason || livenessReason || errCode;
+
+  if (errCode === 'liveness_fake' || reason === 'liveness_fake') {
+    throw new AppError('活体检测未通过，请真人正对镜头重试', 422, {
+      error_type: 'LIVENESS_FAILED',
+      title: '活体检测未通过',
+      need_register: false,
+    });
+  }
+  if (errCode === 'liveness_input_rejected' || reason === 'liveness_input_rejected') {
+    throw new AppError('活体检测未通过，请正对镜头并保持光线充足', 422, {
+      error_type: 'LIVENESS_FAILED',
+      title: '活体检测未通过',
+      need_register: false,
+    });
+  }
+  if (errCode === 'liveness_unavailable') {
+    throw new AppError('活体检测服务暂不可用，请联系管理员', 503, {
+      error_type: 'SYSTEM_ERROR',
+      title: '服务暂不可用',
+      need_register: false,
+    });
+  }
+  if (errCode === 'face_not_found' || reason === 'no_face' || reason === 'no_faces') {
+    throw new AppError('未在画面中检测到有效人脸，请平视摄像头重试', 422, {
+      error_type: 'NO_FACE',
+      title: '未检测到人脸',
+      need_register: false,
+    });
   }
   if (reason === 'multiple_faces') {
-    throw new AppError('画面中检测到多张人脸，请保持单人正对镜头');
+    throw new AppError('画面中检测到多张人脸，请保持单人正对镜头', 422, {
+      error_type: 'MULTIPLE_FACES',
+      title: '检测到多张人脸',
+      need_register: false,
+    });
   }
   if (reason === 'low_quality' || reason === 'blurry') {
-    throw new AppError('人脸图像不够清晰，请重新拍摄');
+    throw new AppError('人脸图像不够清晰，请重新拍摄', 422, {
+      error_type: 'BLURRY',
+      title: '画面不够清晰',
+      need_register: false,
+    });
   }
-  if (reason === 'liveness_fake') {
-    throw new AppError('活体检测未通过，请使用真人正对镜头');
-  }
-  if (res.status === 404) {
-    throw new AppError('人脸识别集合未初始化');
+  if (res.status === 404 || errCode === 'collection_not_found') {
+    throw new AppError('人脸识别集合未初始化', 404, {
+      error_type: 'SYSTEM_ERROR',
+      title: '服务未初始化',
+      need_register: false,
+    });
   }
 
-  const errMessage = resData?.error?.message || '人脸特征比对失败，请重试';
-  throw new AppError(errMessage);
+  // 兜底检测 InsightFace 常见的英文提示，杜绝直接暴露英文错误
+  const rawMsg = resData?.error?.message || '';
+  if (/liveness.*fake|not pass liveness/i.test(rawMsg)) {
+    throw new AppError('活体检测未通过，请真人正对镜头重试', 422, {
+      error_type: 'LIVENESS_FAILED',
+      title: '活体检测未通过',
+      need_register: false,
+    });
+  }
+  if (/liveness.*requirements|adjust face position/i.test(rawMsg)) {
+    throw new AppError('活体检测环境未达标，请正对镜头并保持光线均匀', 422, {
+      error_type: 'LIVENESS_FAILED',
+      title: '活体检测未通过',
+      need_register: false,
+    });
+  }
+  if (/no.*usable.*face|no.*face/i.test(rawMsg)) {
+    throw new AppError('未在画面中检测到有效人脸，请平视摄像头重试', 422, {
+      error_type: 'NO_FACE',
+      title: '未检测到人脸',
+      need_register: false,
+    });
+  }
+  if (/could not be decoded|invalid.*image/i.test(rawMsg)) {
+    throw new AppError('人脸图像无法解析，请平视镜头重新拍摄', 422, {
+      error_type: 'BLURRY',
+      title: '画面无法解析',
+      need_register: false,
+    });
+  }
+
+  const errMessage = rawMsg || '人脸特征比对失败，请重试';
+  throw new AppError(errMessage, 400, {
+    error_type: 'UNKNOWN',
+    title: '人脸比对未通过',
+    need_register: false,
+  });
 }

@@ -102,18 +102,30 @@ authRouter.post('/face-login', async (c) => {
   // 1. 调用 InsightFace 服务的 1:N 检索接口
   const searchResult = await searchFace(imageBuffer, filename);
   if (!searchResult || !searchResult.person_id) {
-    throw new AppError('未比对到匹配的人脸档案，请先在小程序中完成人脸注册', 404);
+    throw new AppError('未在底库中查询到匹配的人脸档案，请先在小程序中完成人脸录入', 404, {
+      error_type: 'UNREGISTERED',
+      title: '未录入人脸档案',
+      need_register: true,
+    });
   }
 
   // 2. 根据 person_id 匹配系统真实用户
   const userId = parseInt(searchResult.person_id, 10);
   if (!userId || Number.isNaN(userId)) {
-    throw new AppError('识别出无效的人员ID', 400);
+    throw new AppError('识别出无效的人员ID', 400, {
+      error_type: 'SYSTEM_ERROR',
+      title: '核验异常',
+      need_register: false,
+    });
   }
 
   const user = await findUser(db, userId);
   if (!user) {
-    throw new AppError('人脸对应用户档案不存在或已被注销', 404);
+    throw new AppError('人脸对应用户档案不存在或已被注销', 404, {
+      error_type: 'UNREGISTERED',
+      title: '未录入人脸档案',
+      need_register: true,
+    });
   }
 
   // 3. 构造公开资料并签发通用 JWT Token

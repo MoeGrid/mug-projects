@@ -19,7 +19,7 @@ export default function ArcadeConsole({
       {/* 0. 内部特权通行证 MUG VIP PASS (仅在 days > 0 时对内展示) */}
       <PassCard
         title='MUG VIP PASS'
-        subTitle='街机畅玩会员'
+        subTitle='街机畅玩卡'
         watermark='VIP PASS'
         icon='⚡'
         days={days}

@@ -202,8 +202,8 @@ export default function IndexPage() {
         })
       }
       setTcgStatus({
-        isActiveToday: Boolean(res.is_active_today),
-        hasMonthlyPass: Boolean(res.has_monthly_pass),
+        isEntryToday: Boolean(res.is_entry_today),
+        hasTcgPass: Boolean(res.has_tcg_pass),
         tcgDays: Number(res.tcg_days || 0),
       })
     }

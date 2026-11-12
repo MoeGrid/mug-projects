@@ -291,7 +291,7 @@ export default function AdminIndexPage() {
                       <View className='pass-status'>
                         {item.is_monthly ? (
                           <View className='badge-monthly'>
-                            <Text className='badge-text'>🌟 月卡畅玩</Text>
+                            <Text className='badge-text'>🌟 TCG PASS 畅玩</Text>
                           </View>
                         ) : (
                           <View className='badge-daily'>
@@ -310,9 +310,9 @@ export default function AdminIndexPage() {
                         <Text className='info-label'>有效截止：</Text>
                         <Text className='info-value highlight'>{item.expire_time}</Text>
                       </View>
-                      {item.has_monthly_pass && (
+                      {item.has_tcg_pass && (
                         <View className='info-item'>
-                          <Text className='info-label'>月卡剩余：</Text>
+                          <Text className='info-label'>TCG PASS：</Text>
                           <Text className='info-value'>{item.tcg_days} 天</Text>
                         </View>
                       )}
@@ -356,12 +356,12 @@ export default function AdminIndexPage() {
               <View className='stat-card consume-today'>
                 <Text className='stat-label'>今日累计消费</Text>
                 <Text className='stat-val'>¥{financeSummary.today_consume}</Text>
-                <Text className='stat-tag'>投币/天卡/月卡</Text>
+                <Text className='stat-tag'>投币/天卡/TCG PASS</Text>
               </View>
               <View className='stat-card consume-month'>
                 <Text className='stat-label'>当月累计消费</Text>
                 <Text className='stat-val'>¥{financeSummary.month_consume}</Text>
-                <Text className='stat-tag'>投币/天卡/月卡</Text>
+                <Text className='stat-tag'>投币/天卡/TCG PASS</Text>
               </View>
             </View>
 
