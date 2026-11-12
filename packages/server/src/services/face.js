@@ -139,3 +139,70 @@ export async function deleteFace(userId) {
 
   throw new AppError('注销人脸失败，请重试');
 }
+
+/**
+ * 人脸特征比对与搜索 (1:N 检索)
+ * @param {Buffer} imageBuffer 图片二进制Buffer
+ * @param {string} filename 文件名
+ * @param {object} options 搜索参数选项 (limit, threshold 等)
+ * @returns {Promise<{ person_id: string, similarity: number, person: object } | null>}
+ */
+export async function searchFace(imageBuffer, filename = 'face.jpg', options = {}) {
+  const baseUrl = config.face.host.replace(/\/+$/, '');
+  const searchUrl = `${baseUrl}/v1/collections/${config.face.collection}/search`;
+
+  const form = new FormData();
+  const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
+  form.append('image', blob, filename);
+  if (options.limit) {
+    form.append('limit', String(options.limit));
+  }
+  if (options.threshold !== undefined && options.threshold !== null) {
+    form.append('threshold', String(options.threshold));
+  }
+
+  const res = await fetch(searchUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${config.face.apiKey}`,
+      Accept: 'application/json',
+    },
+    body: form,
+  });
+
+  const resData = await res.json().catch(() => null);
+
+  if (res.status === 200) {
+    const matches = resData?.matches || [];
+    if (!matches.length) {
+      return null;
+    }
+    const best = matches[0];
+    return {
+      person_id: best.person?.id,
+      similarity: best.similarity,
+      person: best.person,
+    };
+  }
+
+  // 处理失败原因 (如无人脸、多张脸、假脸攻击等)
+  const reason = resData?.error?.details?.rejected_images?.[0]?.reason || resData?.error?.details?.liveness?.reason;
+  if (reason === 'no_face' || reason === 'no_faces') {
+    throw new AppError('未在照片中检测到有效人脸，请正对摄像头重试');
+  }
+  if (reason === 'multiple_faces') {
+    throw new AppError('画面中检测到多张人脸，请保持单人正对镜头');
+  }
+  if (reason === 'low_quality' || reason === 'blurry') {
+    throw new AppError('人脸图像不够清晰，请重新拍摄');
+  }
+  if (reason === 'liveness_fake') {
+    throw new AppError('活体检测未通过，请使用真人正对镜头');
+  }
+  if (res.status === 404) {
+    throw new AppError('人脸识别集合未初始化');
+  }
+
+  const errMessage = resData?.error?.message || '人脸特征比对失败，请重试';
+  throw new AppError(errMessage);
+}
