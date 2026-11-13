@@ -145,6 +145,16 @@
 
       .input-wrap {
         flex: 1;
+        position: relative;
+
+        .privacy-touch-mask {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 10;
+        }
 
         .form-input {
           width: 100%;
@@ -172,56 +182,9 @@
       }
     }
 
-    // 人脸卡片样式
-    &.face-card {
-      .card-desc {
-        display: block;
-        font-size: 24px;
-        color: #64748b;
-        line-height: 1.5;
-        margin-bottom: 20px;
-      }
-
-      .guidelines-box {
-        background: #f8fafc;
-        border: 1px dashed #cbd5e1;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 20px;
-
-        .guide-header {
-          display: block;
-          font-size: 24px;
-          font-weight: 600;
-          color: #334155;
-          margin-bottom: 10px;
-        }
-
-        .guide-item {
-          display: flex;
-          align-items: flex-start;
-          margin-bottom: 6px;
-
-          &:last-child {
-            margin-bottom: 0;
-          }
-
-          .guide-bullet {
-            color: #64748b;
-            font-size: 24px;
-            margin-right: 8px;
-            line-height: 1.4;
-          }
-
-          .guide-text {
-            font-size: 22px;
-            color: #64748b;
-            line-height: 1.4;
-          }
-        }
-      }
-
-      .face-meta-info {
+    // 照片档案卡片样式
+    &.photo-card {
+      .photo-meta-info {
         display: flex;
         align-items: center;
         font-size: 22px;
@@ -238,8 +201,8 @@
         }
       }
 
-      .face-actions-wrap {
-        .btn-face-primary {
+      .photo-actions-wrap {
+        .btn-photo-primary {
           background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
           border-radius: 16px;
           height: 90px;
@@ -259,7 +222,7 @@
           display: flex;
           gap: 16px;
 
-          .btn-face-secondary {
+          .btn-photo-secondary {
             flex: 2;
             background: #f1f5f9;
             border: 1px solid #cbd5e1;
@@ -276,7 +239,7 @@
             }
           }
 
-          .btn-face-danger {
+          .btn-photo-danger {
             flex: 1;
             background: #fff1f2;
             border: 1px solid #fecdd3;

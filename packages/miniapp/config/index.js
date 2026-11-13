@@ -50,6 +50,13 @@ export default defineConfig(async (merge, { command, mode }) => {
           weapp: {
             appid: WEAPP_APPID,
             privateKeyPath: resolvePrivateKeyPath(),
+            setting: {
+              es6: false,
+              es7: false,
+              minify: true,
+              codeProtect: false,
+              autoPrefixWXSS: false,
+            },
           },
           version: process.env.MINI_VERSION || pkg.version || '1.0.0',
           desc: process.env.MINI_DESC || `自动部署体验版 (${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })})`,

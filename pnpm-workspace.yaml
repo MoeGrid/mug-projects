@@ -9,14 +9,6 @@ allowBuilds:
   core-js: true
   core-js-pure: true
   esbuild: true
+  less: true
+  protobufjs: true
   swiper: true
-
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@swc/core'
-  - '@tarojs/binding'
-  - '@tarojs/cli'
-  - core-js
-  - core-js-pure
-  - esbuild
-  - swiper

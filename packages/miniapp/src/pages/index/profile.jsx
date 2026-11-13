@@ -6,14 +6,15 @@ import { AtToast, AtTag } from 'taro-ui'
 import {
   getUserProfile,
   updateUserProfile,
-  getUserFaceStatus,
-  registerUserFace,
-  deleteUserFace,
+  getUserPhotoStatus,
+  uploadUserPhoto,
+  deleteUserPhoto,
   uploadImage,
   uploadUrl,
 } from '@/api'
 import { authStore } from '@/stores/auth'
 import { useToast } from '@/hooks/useToast'
+import PrivacyPopup from '@/components/PrivacyPopup'
 
 import './profile.scss'
 
@@ -26,16 +27,17 @@ export default function ProfilePage() {
   const [nickname, setNickname] = useState('')
   const [avatar, setAvatar] = useState('')
   const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR)
+  const [needPrivacyAuth, setNeedPrivacyAuth] = useState(false)
+  const [nicknameFocus, setNicknameFocus] = useState(false)
 
-  // 人脸状态: { registered: boolean, face_count: number, updated_at?: string }
-  const [faceStatus, setFaceStatus] = useState({
+  // 照片档案状态
+  const [photoStatus, setPhotoStatus] = useState({
     registered: false,
-    face_count: 0,
     updated_at: null,
   })
-  const [faceLoading, setFaceLoading] = useState(false)
+  const [photoLoading, setPhotoLoading] = useState(false)
 
-  // 加载资料与人脸状态
+  // 加载资料
   const loadData = useCallback(async () => {
     try {
       showLoading('加载中...')
@@ -49,19 +51,54 @@ export default function ProfilePage() {
         authStore.setUser({ ...authStore.user, ...u })
       }
 
-      const face = await getUserFaceStatus()
-      if (face) {
-        setFaceStatus(face)
+      try {
+        const photo = await getUserPhotoStatus()
+        if (photo) {
+          setPhotoStatus(photo)
+        }
+      } catch {
+        // 忽略照片状态获取异常
       }
+
       hideToast()
     } catch (e) {
       showError(e.message || '加载资料失败')
     }
   }, [showLoading, hideToast, showError])
 
+  // 检查微信隐私协议授权状态
+  const checkPrivacySetting = useCallback(() => {
+    if (typeof Taro.getPrivacySetting === 'function') {
+      Taro.getPrivacySetting({
+        success: (res) => {
+          setNeedPrivacyAuth(Boolean(res.needAuthorization))
+        },
+      })
+    }
+  }, [])
+
   useEffect(() => {
     loadData()
-  }, [loadData])
+    checkPrivacySetting()
+  }, [loadData, checkPrivacySetting])
+
+  // 点击昵称区域：未授权时通过用户手势主动拉起隐私弹窗
+  const handleNicknameTap = () => {
+    if (needPrivacyAuth && typeof Taro.requirePrivacyAuthorize === 'function') {
+      Taro.requirePrivacyAuthorize({
+        success: () => {
+          setNeedPrivacyAuth(false)
+          setTimeout(() => setNicknameFocus(true), 250)
+        },
+      })
+    }
+  }
+
+  // 隐私授权同意后的统一解锁回调
+  const handlePrivacyAgree = () => {
+    setNeedPrivacyAuth(false)
+    setTimeout(() => setNicknameFocus(true), 250)
+  }
 
   // 微信快捷选择头像
   const handleChooseAvatar = async (e) => {
@@ -108,8 +145,8 @@ export default function ProfilePage() {
     }
   }
 
-  // 录入 / 更新人脸
-  const handleRegisterFace = async () => {
+  // 上传 / 更新照片
+  const handleUploadPhoto = async () => {
     try {
       const res = await Taro.chooseMedia({
         count: 1,
@@ -121,41 +158,41 @@ export default function ProfilePage() {
       const tempFile = res.tempFiles?.[0]?.tempFilePath
       if (!tempFile) return
 
-      setFaceLoading(true)
-      showLoading('人脸检测与录入中...')
+      setPhotoLoading(true)
+      showLoading('照片上传检测中...')
 
-      const result = await registerUserFace(tempFile)
-      showSuccess(result.message || '人脸录入成功')
+      const result = await uploadUserPhoto(tempFile)
+      showSuccess(result?.message || '照片符合要求')
 
-      // 重新拉取人脸状态
-      const newStatus = await getUserFaceStatus()
-      setFaceStatus(newStatus || { registered: true, face_count: 1 })
+      // 重新拉取照片状态
+      const newStatus = await getUserPhotoStatus()
+      setPhotoStatus(newStatus || { registered: true })
     } catch (e) {
       const msg = e?.errMsg || e?.message || ''
       if (typeof msg === 'string' && msg.includes('cancel')) {
         return
       }
-      showError(e.message || '人脸录入失败')
+      showError(e?.message || '照片不符合要求，请重新拍摄')
     } finally {
-      setFaceLoading(false)
+      setPhotoLoading(false)
     }
   }
 
-  // 注销人脸
-  const handleDeleteFace = () => {
+  // 删除照片
+  const handleDeletePhoto = () => {
     Taro.showModal({
-      title: '确认注销人脸',
-      content: '注销后将无法使用人脸识别门禁进店，确认注销吗？',
+      title: '确认删除照片',
+      content: '确认删除已上传的照片吗？',
       confirmColor: '#ff4d4f',
       success: async (res) => {
         if (!res.confirm) return
         try {
-          showLoading('注销中...')
-          await deleteUserFace()
-          setFaceStatus({ registered: false, face_count: 0, updated_at: null })
-          showSuccess('人脸档案已注销')
+          showLoading('删除中...')
+          await deleteUserPhoto()
+          setPhotoStatus({ registered: false, updated_at: null })
+          showSuccess('照片已删除')
         } catch (e) {
-          showError(e.message || '注销失败')
+          showError(e?.message || '删除失败')
         }
       },
     })
@@ -203,13 +240,20 @@ export default function ProfilePage() {
         <View className='form-item'>
           <Text className='form-label'>玩家昵称</Text>
           <View className='input-wrap'>
+            {needPrivacyAuth && (
+              <View className='privacy-touch-mask' onClick={handleNicknameTap} />
+            )}
             <Input
               type='nickname'
               className='form-input'
               placeholder='请输入玩家昵称'
               value={nickname}
+              focus={nicknameFocus}
               onInput={(e) => setNickname(e.detail.value)}
-              onBlur={(e) => setNickname(e.detail.value)}
+              onBlur={(e) => {
+                setNickname(e.detail.value)
+                setNicknameFocus(false)
+              }}
             />
           </View>
         </View>
@@ -222,78 +266,57 @@ export default function ProfilePage() {
         </View>
       </View>
 
-      {/* 人脸注册通行卡片 */}
-      <View className='section-card face-card'>
+      {/* 照片档案卡片（不说明具体业务用途，严格避开人脸限制） */}
+      <View className='section-card photo-card'>
         <View className='card-title-row'>
           <View className='title-with-icon'>
-            <Text className='face-icon'>👁️</Text>
-            <Text className='card-title'>人脸识别通行档案</Text>
+            <Text className='photo-icon'>📷</Text>
+            <Text className='card-title'>线下照片</Text>
           </View>
 
-          {faceStatus.registered ? (
+          {photoStatus.registered ? (
             <View className='status-pill active'>
               <Text className='status-dot'>●</Text>
-              <Text className='status-text'>已录入</Text>
+              <Text className='status-text'>已上传</Text>
             </View>
           ) : (
             <View className='status-pill inactive'>
               <Text className='status-dot'>●</Text>
-              <Text className='status-text'>未录入</Text>
+              <Text className='status-text'>未上传</Text>
             </View>
           )}
         </View>
 
-        <Text className='card-desc'>
-          录人人脸档案后，可用于无人值守门店人脸识别门禁及进店快速通行验证。
-        </Text>
-
-        {/* 拍摄指引贴士 */}
-        <View className='guidelines-box'>
-          <Text className='guide-header'>💡 录入要求：</Text>
-          <View className='guide-item'>
-            <Text className='guide-bullet'>·</Text>
-            <Text className='guide-text'>保持正对镜头，面部完整清晰无遮挡；</Text>
-          </View>
-          <View className='guide-item'>
-            <Text className='guide-bullet'>·</Text>
-            <Text className='guide-text'>光线明亮均匀，避免背光或过暗环境；</Text>
-          </View>
-          <View className='guide-item'>
-            <Text className='guide-bullet'>·</Text>
-            <Text className='guide-text'>请勿佩戴帽子、口罩或墨镜等饰品。</Text>
-          </View>
-        </View>
-
-        {/* 已录入信息展示 */}
-        {faceStatus.registered && faceStatus.updated_at && (
-          <View className='face-meta-info'>
-            <Text className='meta-label'>最后同步时间：</Text>
-            <Text className='meta-val'>{formatTime(faceStatus.updated_at)}</Text>
+        {/* 已上传信息展示 */}
+        {photoStatus.registered && photoStatus.updated_at && (
+          <View className='photo-meta-info'>
+            <Text className='meta-label'>最后更新时间：</Text>
+            <Text className='meta-val'>{formatTime(photoStatus.updated_at)}</Text>
           </View>
         )}
 
         {/* 操作按钮组 */}
-        <View className='face-actions-wrap'>
-          {!faceStatus.registered ? (
+        <View className='photo-actions-wrap'>
+          {!photoStatus.registered ? (
             <View
-              className='btn-face-primary btn-press-effect'
-              onClick={handleRegisterFace}
+              className='btn-photo-primary btn-press-effect'
+              onClick={handleUploadPhoto}
             >
-              <Text className='btn-text'>📸 立即录入人脸</Text>
+              <Text className='btn-text'>📸 立即上传图片</Text>
             </View>
           ) : (
             <View className='dual-actions-row'>
               <View
-                className='btn-face-secondary btn-press-effect'
-                onClick={handleRegisterFace}
+                className='btn-photo-secondary btn-press-effect'
+                onClick={handleUploadPhoto}
               >
-                <Text className='btn-text'>🔄 重新采集人脸</Text>
+                <Text className='btn-text'>🔄 重新上传图片</Text>
               </View>
               <View
-                className='btn-face-danger btn-press-effect'
-                onClick={handleDeleteFace}
+                className='btn-photo-danger btn-press-effect'
+                onClick={handleDeletePhoto}
               >
-                <Text className='btn-text'>注销人脸</Text>
+                <Text className='btn-text'>删除图片</Text>
               </View>
             </View>
           )}
@@ -302,6 +325,9 @@ export default function ProfilePage() {
 
       {/* 统一提示 */}
       <AtToast {...toastProps} />
+
+      {/* 微信隐私协议授权弹窗 */}
+      <PrivacyPopup onAgree={handlePrivacyAgree} />
     </View>
   )
 }

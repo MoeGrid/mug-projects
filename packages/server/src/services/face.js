@@ -95,28 +95,15 @@ export async function registerFace(userId, nickname, imageBuffer, filename = 'fa
   if (res.status === 200 || res.status === 201) {
     return {
       registered: true,
-      message: '人脸录入成功',
+      valid: true,
+      message: '照片符合要求',
       person_id: personId,
     };
   }
 
-  // 3. 处理失败原因并转换为易懂中文提示
-  const reason = resData?.error?.details?.rejected_images?.[0]?.reason;
-  if (reason === 'no_face' || reason === 'no_faces') {
-    throw new AppError('未在照片中检测到人脸，请保持光线明亮正对镜头');
-  }
-  if (reason === 'multiple_faces') {
-    throw new AppError('照片中检测到多张人脸，请确保画面中仅有您一人');
-  }
-  if (reason === 'low_quality' || reason === 'blurry') {
-    throw new AppError('人脸不够清晰，请重新拍摄正面照');
-  }
-  if (reason === 'invalid_image') {
-    throw new AppError('图片格式不正确，请重新拍照上传');
-  }
-
-  const errMessage = resData?.error?.message || '人脸检测失败，请重试';
-  throw new AppError(errMessage);
+  // 3. 失败时统一只返回是否符合要求，绝对不返回具体错误细节，防止外露算法信息与敏感字眼
+  console.warn(`[FaceRegister] 用户 ${userId} 照片未通过检测:`, resData?.error || `HTTP ${res.status}`);
+  throw new AppError('照片不符合要求，请重新拍摄');
 }
 
 /**

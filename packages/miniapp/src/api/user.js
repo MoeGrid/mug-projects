@@ -16,17 +16,17 @@ export function updateUserProfile(data) {
 }
 
 /**
- * 获取用户人脸档案状态
+ * 获取用户照片档案状态
  */
-export function getUserFaceStatus() {
+export function getUserPhotoStatus() {
   return get('/api/v1/user/face/status')
 }
 
 /**
- * 上传并注册用户人脸照片
+ * 上传用户照片
  * @param {string} filePath 本地图片临时路径
  */
-export function registerUserFace(filePath) {
+export function uploadUserPhoto(filePath) {
   return upload('/api/v1/user/face/register', {
     name: 'image',
     filePath,
@@ -34,9 +34,11 @@ export function registerUserFace(filePath) {
 }
 
 /**
- * 注销当前用户人脸档案
+ * 删除用户照片档案
  */
-export function deleteUserFace() {
+export function deleteUserPhoto() {
   return del('/api/v1/user/face')
 }
+
+
 

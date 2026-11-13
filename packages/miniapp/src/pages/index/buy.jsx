@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/useToast'
 
 import './buy.scss'
 
-const PRESET_AMOUNTS = [10, 20, 50, 100, 200, 500]
+const PRESET_AMOUNTS = [5, 10, 20, 50, 100, 200]
 
 export default function BuyPage() {
   const { toastProps, showLoading, showSuccess, showError, showText, hideToast } = useToast()

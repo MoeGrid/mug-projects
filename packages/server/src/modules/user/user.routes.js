@@ -76,7 +76,7 @@ userRouter.post('/face/register', async (c) => {
 
   const file = form.get('image') ?? form.get('file');
   if (!file || !(file instanceof File)) {
-    throw new AppError('请选择拍摄的人脸照片');
+    throw new AppError('请选择拍摄的照片');
   }
 
   if (file.size > 8 * 1024 * 1024) {
