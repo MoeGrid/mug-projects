@@ -6,9 +6,6 @@ import { AtToast, AtTag } from 'taro-ui'
 import {
   getUserProfile,
   updateUserProfile,
-  getUserPhotoStatus,
-  uploadUserPhoto,
-  deleteUserPhoto,
   uploadImage,
   uploadUrl,
 } from '@/api'
@@ -30,13 +27,6 @@ export default function ProfilePage() {
   const [needPrivacyAuth, setNeedPrivacyAuth] = useState(false)
   const [nicknameFocus, setNicknameFocus] = useState(false)
 
-  // 照片档案状态
-  const [photoStatus, setPhotoStatus] = useState({
-    registered: false,
-    updated_at: null,
-  })
-  const [photoLoading, setPhotoLoading] = useState(false)
-
   // 加载资料
   const loadData = useCallback(async () => {
     try {
@@ -50,16 +40,6 @@ export default function ProfilePage() {
         setAvatarUrl(u.avatar ? uploadUrl(u.avatar) : DEFAULT_AVATAR)
         authStore.setUser({ ...authStore.user, ...u })
       }
-
-      try {
-        const photo = await getUserPhotoStatus()
-        if (photo) {
-          setPhotoStatus(photo)
-        }
-      } catch {
-        // 忽略照片状态获取异常
-      }
-
       hideToast()
     } catch (e) {
       showError(e.message || '加载资料失败')
@@ -145,69 +125,6 @@ export default function ProfilePage() {
     }
   }
 
-  // 上传 / 更新照片
-  const handleUploadPhoto = async () => {
-    try {
-      const res = await Taro.chooseMedia({
-        count: 1,
-        mediaType: ['image'],
-        sourceType: ['camera', 'album'],
-        camera: 'front',
-      })
-
-      const tempFile = res.tempFiles?.[0]?.tempFilePath
-      if (!tempFile) return
-
-      setPhotoLoading(true)
-      showLoading('照片上传检测中...')
-
-      const result = await uploadUserPhoto(tempFile)
-      showSuccess(result?.message || '照片符合要求')
-
-      // 重新拉取照片状态
-      const newStatus = await getUserPhotoStatus()
-      setPhotoStatus(newStatus || { registered: true })
-    } catch (e) {
-      const msg = e?.errMsg || e?.message || ''
-      if (typeof msg === 'string' && msg.includes('cancel')) {
-        return
-      }
-      showError(e?.message || '照片不符合要求，请重新拍摄')
-    } finally {
-      setPhotoLoading(false)
-    }
-  }
-
-  // 删除照片
-  const handleDeletePhoto = () => {
-    Taro.showModal({
-      title: '确认删除照片',
-      content: '确认删除已上传的照片吗？',
-      confirmColor: '#ff4d4f',
-      success: async (res) => {
-        if (!res.confirm) return
-        try {
-          showLoading('删除中...')
-          await deleteUserPhoto()
-          setPhotoStatus({ registered: false, updated_at: null })
-          showSuccess('照片已删除')
-        } catch (e) {
-          showError(e?.message || '删除失败')
-        }
-      },
-    })
-  }
-
-  const formatTime = (isoStr) => {
-    if (!isoStr) return ''
-    try {
-      const d = new Date(isoStr)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-    } catch {
-      return isoStr
-    }
-  }
-
   return (
     <View className='page-profile'>
       {/* 玩家基本信息卡片（头像、昵称与保存一体化） */}
@@ -263,63 +180,6 @@ export default function ProfilePage() {
           <View className='btn-save btn-press-effect' onClick={handleSaveProfile}>
             <Text>保存基本资料</Text>
           </View>
-        </View>
-      </View>
-
-      {/* 照片档案卡片（不说明具体业务用途，严格避开人脸限制） */}
-      <View className='section-card photo-card'>
-        <View className='card-title-row'>
-          <View className='title-with-icon'>
-            <Text className='photo-icon'>📷</Text>
-            <Text className='card-title'>线下照片</Text>
-          </View>
-
-          {photoStatus.registered ? (
-            <View className='status-pill active'>
-              <Text className='status-dot'>●</Text>
-              <Text className='status-text'>已上传</Text>
-            </View>
-          ) : (
-            <View className='status-pill inactive'>
-              <Text className='status-dot'>●</Text>
-              <Text className='status-text'>未上传</Text>
-            </View>
-          )}
-        </View>
-
-        {/* 已上传信息展示 */}
-        {photoStatus.registered && photoStatus.updated_at && (
-          <View className='photo-meta-info'>
-            <Text className='meta-label'>最后更新时间：</Text>
-            <Text className='meta-val'>{formatTime(photoStatus.updated_at)}</Text>
-          </View>
-        )}
-
-        {/* 操作按钮组 */}
-        <View className='photo-actions-wrap'>
-          {!photoStatus.registered ? (
-            <View
-              className='btn-photo-primary btn-press-effect'
-              onClick={handleUploadPhoto}
-            >
-              <Text className='btn-text'>📸 立即上传图片</Text>
-            </View>
-          ) : (
-            <View className='dual-actions-row'>
-              <View
-                className='btn-photo-secondary btn-press-effect'
-                onClick={handleUploadPhoto}
-              >
-                <Text className='btn-text'>🔄 重新上传图片</Text>
-              </View>
-              <View
-                className='btn-photo-danger btn-press-effect'
-                onClick={handleDeletePhoto}
-              >
-                <Text className='btn-text'>删除图片</Text>
-              </View>
-            </View>
-          )}
         </View>
       </View>
 
