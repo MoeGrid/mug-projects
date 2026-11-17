@@ -39,7 +39,7 @@ export default defineConfig(async (merge, { command, mode }) => {
       828: 1.81 / 2
     },
     sourceRoot: 'src',
-    outputRoot: 'dist',
+    outputRoot: process.env.TARO_OUTPUT_ROOT || 'dist',
     alias: {
       '@': path.resolve(__dirname, '..', 'src')
     },

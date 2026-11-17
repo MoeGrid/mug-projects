@@ -12,6 +12,7 @@ import { arcadeRouter } from './modules/arcade/arcade.routes.js';
 import { tcgRouter } from './modules/tcg/tcg.routes.js';
 import { commonRouter } from './modules/common/common.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
+import { qrRouter } from './modules/qr/qr.routes.js';
 
 const app = new Hono();
 
@@ -62,6 +63,7 @@ v1.route('/arcade', arcadeRouter);
 v1.route('/tcg', tcgRouter);
 v1.route('/common', commonRouter);
 v1.route('/admin', adminRouter);
+v1.route('/qr', qrRouter);
 
 app.route('/api/v1', v1);
 

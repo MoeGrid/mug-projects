@@ -56,7 +56,16 @@ export async function request(method, url, data, isRetry = false) {
             reject(new Error('自动重新登录失败，请退出重试'))
           }
         } else {
-          reject(new Error(`网络错误: ${res.statusCode}`))
+          // 非 200 也把服务端的 msg 透出来（二维码过期/无效这些提示比「网络错误: 410」有用）
+          let body = res.data
+          if (typeof body === 'string') {
+            try {
+              body = JSON.parse(body)
+            } catch (e) {}
+          }
+          const err = new Error((body && body.msg) || `网络错误: ${res.statusCode}`)
+          err.status = res.statusCode
+          reject(err)
         }
       },
       fail(err) {

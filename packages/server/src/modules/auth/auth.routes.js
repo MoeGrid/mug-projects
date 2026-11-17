@@ -5,10 +5,12 @@ import { db } from '../../db/client.js';
 import * as WeSdk from '../../services/wechat.js';
 import { searchFace } from '../../services/face.js';
 import { generateToken } from '../../utils/auth.js';
+import { userAuth } from '../../utils/middleware.js';
 import { body } from '../../utils/validator.js';
 import { AppError, ok } from '../../utils/responses.js';
 import { getSetting } from '../../models/event.js';
 import { findUser, findUserByOpenId, insertUser, toPublic, updateUser } from '../../models/user.js';
+import { bindSession, getSession, remainSeconds, QrStatus } from '../../services/qrSession.js';
 
 export const authRouter = new Hono();
 
@@ -53,6 +55,47 @@ authRouter.post('/wechat-login', async (c) => {
   }
 
   return c.json(ok(data));
+});
+
+/**
+ * POST /api/v1/auth/qr-authorize
+ * 小程序扫码后授权：把这次扫码会话绑定到当前微信账号。
+ * 通用接口，具体用途由会话里的 action 决定（login 扫码登录 / face_bind 绑定人脸 …）
+ * 入参：{ qr: string } 二维码里携带的一次性 token
+ */
+authRouter.post('/qr-authorize', userAuth, async (c) => {
+  const { qr } = await body(
+    c,
+    z.object({
+      qr: z.string('二维码参数不能为空').min(1, '二维码参数不能为空').max(128, '二维码参数过长'),
+    })
+  );
+
+  const user = c.get('user');
+
+  // 先做一次存在性与状态检查，把失败原因分清楚，方便小程序给出准确提示
+  const existing = getSession(qr);
+  if (!existing) throw new AppError('二维码无效，请重新扫码', 404);
+  if (existing.status === QrStatus.EXPIRED || remainSeconds(existing) <= 0) {
+    throw new AppError('二维码已过期，请重新生成后扫码', 410);
+  }
+  if (existing.status === QrStatus.AUTHORIZED && existing.user_id !== user.id) {
+    throw new AppError('二维码已被其他账号使用，请重新生成', 409);
+  }
+
+  const result = bindSession(qr, user.id);
+  if (!result.ok) {
+    throw new AppError('授权失败，请重新生成二维码', 409);
+  }
+
+  return c.json(
+    ok({
+      status: result.session.status,
+      action: result.session.action,
+      expire_in: remainSeconds(result.session),
+      nickname: user.nickname,
+    })
+  );
 });
 
 /**

@@ -16,7 +16,7 @@ function hmacSha256(data, secret) {
   return crypto.createHmac('sha256', secret).update(data).digest();
 }
 
-/** 签发 JWT */
+/** 签发 JWT（扫码登录下发的也是这一个统一令牌） */
 export async function generateToken(userId) {
   const header = base64Url(Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
   const now = Math.floor(Date.now() / 1000);
@@ -40,9 +40,10 @@ export async function verifyToken(token) {
   if (parts.length !== 3) return null;
   const [header, payload, signature] = parts;
   const expected = base64Url(hmacSha256(`${header}.${payload}`, config.token.secret));
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-    return null;
-  }
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  // 长度不等时 timingSafeEqual 会抛异常，直接判失败
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
     const data = JSON.parse(base64UrlDecode(payload).toString('utf8'));
     if (typeof data.exp === 'number' && Math.floor(Date.now() / 1000) > data.exp) {

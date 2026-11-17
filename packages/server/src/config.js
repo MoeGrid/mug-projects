@@ -76,4 +76,10 @@ export const config = {
   fs: {
     publicRoot: str('STORAGE_ROOT', 'public/storage'),
   },
+
+  // 通用扫码会话：二维码落地域名与一次性会话有效期
+  qr: {
+    qrBaseUrl: str('QR_BASE_URL', '') || str('KIOSK_QR_BASE_URL', 'https://v2.mug.moegrid.com'),
+    expire: num('QR_EXPIRE', 180),
+  },
 };
