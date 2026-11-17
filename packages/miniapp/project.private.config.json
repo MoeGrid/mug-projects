@@ -1,0 +1,26 @@
+{
+  "projectname": "衡水MUG",
+  "setting": {
+    "urlCheck": false
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "扫码登录-绑定人脸",
+          "pathName": "pages/index/login",
+          "query": "qr=813696230ea4953afa93eeb71fdab9a8&a=face_bind&t=180",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
+          "name": "扫码登录-设备登录",
+          "pathName": "pages/index/login",
+          "query": "qr=813696230ea4953afa93eeb71fdab9a8&a=login&t=180",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  }
+}

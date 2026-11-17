@@ -6,7 +6,7 @@ class SettingStore {
   constructor() {
     this.state = {
       device: 0,
-      mainMode: 'arcade', // 'arcade' (街机音游) | 'card' (卡牌通行证)
+      mainMode: 'arcade', // 'arcade' (街机音游) | 'card' (通行证)
     }
     try {
       const str = Taro.getStorageSync(STORAGE_KEY)

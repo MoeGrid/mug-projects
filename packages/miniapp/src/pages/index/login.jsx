@@ -21,26 +21,18 @@ const COPY = {
   [QR_ACTION.FACE_BIND]: {
     eyebrow: 'FACE ENROLL',
     hero: '绑定人脸',
-    sub: '让这张脸直接刷开 MUG 的门',
-    readyTitle: '授权登录，绑你的人脸',
-    readyDesc:
-      '你在门店一体机上刚采集的人脸还没绑定账号。点击下方授权，这张脸会直接写入你的微信账号，不需要在小程序里重新拍照。',
+    readyTitle: '授权登录，绑定人脸',
     doneTitle: '授权完成',
-    doneDesc: (nick) =>
-      `一体机正在把这帧人脸写入${nick ? ` ${nick} ` : '你的'}账号，结果以大屏显示为准，现在可以离开本页了。`,
     btn: '授权登录',
+    hint: '授权仅用于本次人脸绑定。',
   },
   [QR_ACTION.LOGIN]: {
     eyebrow: 'QR LOGIN',
     hero: '扫码登录',
-    sub: '微信扫一扫，直接登录发起设备',
-    readyTitle: '确认登录这台设备',
-    readyDesc:
-      '发起设备正在请求登录你的 MUG 账号。确认后它会以你的身份继续操作；如果不是本人在操作，请直接关闭本页。',
+    readyTitle: '确认登录',
     doneTitle: '登录成功',
-    doneDesc: (nick) =>
-      `${nick ? ` ${nick} ` : '你的账号'}已经登录到发起设备，可以回到那边继续操作。`,
     btn: '确认登录',
+    hint: '不是本人操作请直接关闭本页。',
   },
 }
 
@@ -117,7 +109,6 @@ export default function QrAuthorizePage() {
   const [phase, setPhase] = useState(token ? PHASE.READY : PHASE.INVALID)
   const [action, setAction] = useState(initialAction)
   const [remain, setRemain] = useState(ttl)
-  const [nickname, setNickname] = useState('')
   const [message, setMessage] = useState(
     token ? '' : '没有识别到二维码参数，请在发起设备上重新扫码。'
   )
@@ -150,24 +141,24 @@ export default function QrAuthorizePage() {
     try {
       await authStore.login(true)
       const res = await authorizeQr(token)
-      const nick = res.nickname || (authStore.user && authStore.user.nickname) || ''
-      setNickname(nick)
       if (res.action) setAction(res.action)
       // 授权就是终点：令牌已经发给发起设备，这里直接显示完成
       setPhase(PHASE.DONE)
     } catch (e) {
-      // 404 无效 / 410 过期 / 409 已被占用：都是这张码不能用了，不用再重试
-      if (e.status === 404 || e.status === 410 || e.status === 409) {
+      // 4xx 说明这张码本身不能用了（404 无效 / 410 过期 / 409 已被占用 / 400 参数坏），
+      // 重试只会一直撞同一堵墙，直接判失效、只留返回
+      if (e.status >= 400 && e.status < 500) {
         setPhase(PHASE.INVALID)
         setMessage(e.message)
         return
       }
+      // 网络抖动、5xx 这类才值得重试
       setPhase(PHASE.ERROR)
       setMessage(e.message || '授权失败，请重试')
     }
   }
 
-  const handleDone = () => {
+  const handleBack = () => {
     const pages = Taro.getCurrentPages()
     if (pages.length > 1) {
       Taro.navigateBack()
@@ -186,7 +177,6 @@ export default function QrAuthorizePage() {
       <View className='hero'>
         <Text className='hero-eyebrow'>{copy.eyebrow}</Text>
         <Text className='hero-title'>{copy.hero}</Text>
-        <Text className='hero-sub'>{copy.sub}</Text>
       </View>
 
       <View className='card'>
@@ -195,7 +185,6 @@ export default function QrAuthorizePage() {
           <View className='state-block'>
             <View className='badge'>待授权</View>
             <Text className='state-title'>{copy.readyTitle}</Text>
-            <Text className='state-desc'>{copy.readyDesc}</Text>
 
             {ttl > 0 && (
               <View className='countdown'>
@@ -214,9 +203,7 @@ export default function QrAuthorizePage() {
               {phase === PHASE.AUTHORIZING ? '正在授权…' : copy.btn}
             </Button>
 
-            <Text className='hint'>
-              授权仅代表同意本次操作使用你的微信账号，不会获取你的其他信息。
-            </Text>
+            <Text className='hint'>{copy.hint}</Text>
           </View>
         )}
 
@@ -225,8 +212,7 @@ export default function QrAuthorizePage() {
           <View className='state-block'>
             <View className='success-icon'>✓</View>
             <Text className='state-title'>{copy.doneTitle}</Text>
-            <Text className='state-desc'>{copy.doneDesc(nickname)}</Text>
-            <Button className='primary-btn' hoverClass='primary-btn-hover' onClick={handleDone}>
+            <Button className='primary-btn' hoverClass='primary-btn-hover' onClick={handleBack}>
               完成
             </Button>
           </View>
@@ -242,11 +228,10 @@ export default function QrAuthorizePage() {
             <Text className='state-desc'>
               {message || '请在发起设备上刷新二维码后重新扫描。'}
             </Text>
-            {phase === PHASE.ERROR && (
-              <Button className='ghost-btn' onClick={handleAuthorize}>
-                重试
-              </Button>
-            )}
+            {/* 这个码只能回发起设备刷新，重试没有意义，只留返回 */}
+            <Button className='primary-btn' hoverClass='primary-btn-hover' onClick={handleBack}>
+              返回
+            </Button>
           </View>
         )}
       </View>

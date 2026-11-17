@@ -17,7 +17,7 @@ export default function ModeSwitcher({ activeMode, onSwitch }) {
         onClick={() => onSwitch('card')}
       >
         <Text className='mode-icon'>🎴</Text>
-        <Text className='mode-title'>卡牌通行证</Text>
+        <Text className='mode-title'>卡牌入场</Text>
         {activeMode === 'card' && <View className='active-pill' />}
       </View>
     </View>

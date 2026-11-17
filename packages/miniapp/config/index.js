@@ -8,6 +8,8 @@ import prodConfig from './prod'
 // 读取小程序 package.json 版本号
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf-8'))
 const WEAPP_APPID = process.env.MINI_APPID || 'wx31e78bc38118667b'
+// 输出目录（微信开发者工具会往这里写 project.private.config.json）
+const OUTPUT_ROOT = process.env.TARO_OUTPUT_ROOT || 'dist'
 
 // 智能探测微信 CI 上传私钥路径 (优先环境变量，其次根目录或 config 目录下的 key 文件)
 function resolvePrivateKeyPath() {
@@ -39,7 +41,7 @@ export default defineConfig(async (merge, { command, mode }) => {
       828: 1.81 / 2
     },
     sourceRoot: 'src',
-    outputRoot: process.env.TARO_OUTPUT_ROOT || 'dist',
+    outputRoot: OUTPUT_ROOT,
     alias: {
       '@': path.resolve(__dirname, '..', 'src')
     },
@@ -67,7 +69,10 @@ export default defineConfig(async (merge, { command, mode }) => {
     },
     copy: {
       patterns: [
-        { from: 'src/static', to: 'dist/static' }
+        { from: 'src/static', to: `${OUTPUT_ROOT}/static` },
+        // 微信开发者工具的「编译模式 / 本地设置」写在 project.private.config.json，
+        // 每次构建都会清空输出目录把它一起删掉，所以放在项目根随构建一起拷回去
+        { from: 'project.private.config.json', to: `${OUTPUT_ROOT}/project.private.config.json` }
       ],
       options: {
       }

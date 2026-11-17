@@ -35,7 +35,7 @@ export default function IndexPage() {
   const [user, setUser] = useState(authStore.user)
   const [available, setAvailable] = useState(authStore.available)
 
-  // 双核模式：'arcade' (街机音游) | 'card' (卡牌通行证)
+  // 双核模式：'arcade' (街机音游) | 'card' (卡牌)
   const [activeMode, setActiveMode] = useState(settingStore.state.mainMode || 'arcade')
 
   useEffect(() => {
@@ -420,7 +420,7 @@ export default function IndexPage() {
         onOpenProfile={handleOpenProfile}
       />
 
-      {/* 2. 模式切换双核胶囊 (街机投币 ⟷ 卡牌通行证) */}
+      {/* 2. 模式切换双核胶囊 (街机投币 ⟷ 卡牌) */}
       {user && !user.is_ban && (
         <ModeSwitcher activeMode={activeMode} onSwitch={handleSwitchMode} />
       )}
