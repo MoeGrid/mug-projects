@@ -104,7 +104,10 @@ walletRouter.post('/orders/recharge', async (c) => {
   const { amount } = await body(
     c,
     z.object({
-      amount: zNum('充值金额').int('充值金额必须为整数').min(1, '充值金额必须大于0'),
+      amount: zNum('充值金额')
+        .int('充值金额必须为整数')
+        .min(1, '充值金额必须大于0')
+        .max(199, '单笔充值金额必须小于200元'),
     })
   );
   const user = currentUser(c);
@@ -148,6 +151,9 @@ walletRouter.post('/orders/package', async (c) => {
   const user = currentUser(c);
   const event = await findActiveEvent(packageId, now());
   if (!event) throw new AppError('活动套餐已下架或不存在!');
+  if (Number(event.amount) >= 200) {
+    throw new AppError('充值套餐金额必须小于200元');
+  }
 
   const weOrderId = Snowflake.generate();
   await createOrder(db, {

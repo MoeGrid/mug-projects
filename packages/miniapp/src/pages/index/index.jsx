@@ -14,8 +14,6 @@ import {
   getTcgPassOptions,
   bleConsumeCoin,
   remoteInsertCoin,
-  uploadImage,
-  updateUserProfile,
   uploadUrl,
 } from '@/api'
 import { authStore } from '@/stores/auth'
@@ -48,13 +46,17 @@ export default function IndexPage() {
   }, [])
 
   // 模式切换
-  const handleSwitchMode = (mode) => {
+  const handleSwitchMode = async (mode) => {
     setActiveMode(mode)
     settingStore.setMainMode(mode)
-    if (mode === 'card') {
-      loadTcgStatus()
-    } else {
-      loadDevices()
+    try {
+      if (mode === 'card') {
+        await loadTcgStatus()
+      } else {
+        await loadDevices()
+      }
+    } catch (e) {
+      showError(e.message || '数据加载失败')
     }
   }
 
@@ -237,15 +239,22 @@ export default function IndexPage() {
   useEffect(() => {
     async function init() {
       try {
+        Taro.showLoading({ title: '加载中...', mask: true })
         const currentUser = await authStore.login()
         if (currentUser?.is_ban) {
           setBanMsg(currentUser.ban_msg || '您的账号已被封禁')
           setBanModalVisible(true)
         } else {
-          await silentRefresh()
+          await refreshAllData()
         }
       } catch (e) {
-        showError(e.message || '登录失败')
+        showError(e.message || '加载失败')
+      } finally {
+        try {
+          Taro.hideLoading()
+        } catch {
+          // 忽略关闭异常
+        }
       }
     }
     init()

@@ -51,11 +51,26 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
     margin-bottom: 32px;
 
-    .card-title {
-      font-size: 30px;
-      font-weight: 700;
-      color: #2d3436;
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 24px;
+
+      .card-title {
+        font-size: 30px;
+        font-weight: 700;
+        color: #2d3436;
+      }
+
+      .limit-hint {
+        font-size: 22px;
+        color: #636e72;
+        background: #f1f2f6;
+        padding: 4px 14px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
     }
 
     /* 快捷面额网格 */

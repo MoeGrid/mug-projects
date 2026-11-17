@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/useToast'
 
 import './buy.scss'
 
-const PRESET_AMOUNTS = [5, 10, 20, 50, 100, 200]
+const PRESET_AMOUNTS = [10, 20, 30, 50, 100, 150]
 
 export default function BuyPage() {
   const { toastProps, showLoading, showSuccess, showError, showText, hideToast } = useToast()
@@ -52,7 +52,7 @@ export default function BuyPage() {
     setNum(String(val))
   }
 
-  // 输入框输入（仅允许整数）
+  // 输入框输入（仅允许整数且单笔小于 200 元）
   const handleInputChange = (e) => {
     let val = e.detail.value || ''
     // 过滤所有非纯数字（禁止小数点及负号等）
@@ -61,10 +61,15 @@ export default function BuyPage() {
     if (val.length > 1 && val.startsWith('0')) {
       val = val.replace(/^0+/, '')
     }
-    setNum(val)
     const asNum = parseInt(val, 10)
-    if (PRESET_AMOUNTS.includes(asNum)) {
-      setSelectedPreset(asNum)
+    if (asNum >= 200) {
+      val = '199'
+      showText('单笔充值金额需小于200元')
+    }
+    setNum(val)
+    const finalNum = parseInt(val, 10)
+    if (PRESET_AMOUNTS.includes(finalNum)) {
+      setSelectedPreset(finalNum)
     } else {
       setSelectedPreset(null)
     }
@@ -76,6 +81,10 @@ export default function BuyPage() {
     const val = parseInt(num, 10)
     if (!val || val <= 0 || !Number.isInteger(val)) {
       showText('请输入大于0的整数充值金额')
+      return
+    }
+    if (val >= 200) {
+      showText('单笔充值金额需小于200元')
       return
     }
 
@@ -138,7 +147,10 @@ export default function BuyPage() {
 
       {/* 充值卡片 */}
       <View className='recharge-card'>
-        <View className='card-title'>充值金额</View>
+        <View className='card-title-row'>
+          <Text className='card-title'>充值金额</Text>
+          <Text className='limit-hint'>单笔充值需小于200元</Text>
+        </View>
 
         {/* 快捷档位网格 */}
         <View className='amount-grid'>
@@ -161,8 +173,9 @@ export default function BuyPage() {
           <Text className='currency-symbol'>¥</Text>
           <Input
             type='number'
+            maxlength={3}
             className='amount-input'
-            placeholder='输入整数充值金额'
+            placeholder='输入充值金额 (1-199元)'
             value={num}
             onInput={handleInputChange}
           />
