@@ -8,9 +8,10 @@ import { generateToken } from '../../utils/auth.js';
 import { userAuth } from '../../utils/middleware.js';
 import { body } from '../../utils/validator.js';
 import { AppError, ok } from '../../utils/responses.js';
-import { getSetting } from '../../models/event.js';
+import { getSetting } from '../../models/setting.js';
 import { findUser, findUserByOpenId, insertUser, toPublic, updateUser } from '../../models/user.js';
 import { bindSession, getSession, remainSeconds, QrStatus } from '../../services/qrSession.js';
+import { rateLimit } from '../../utils/rateLimit.js';
 
 export const authRouter = new Hono();
 
@@ -18,7 +19,7 @@ export const authRouter = new Hono();
  * POST /api/v1/auth/wechat-login
  * 微信静默登录
  */
-authRouter.post('/wechat-login', async (c) => {
+authRouter.post('/wechat-login', rateLimit({ name: 'wechat-login', max: 60 }), async (c) => {
   const { code } = await body(
     c,
     z.object({
@@ -103,7 +104,13 @@ authRouter.post('/qr-authorize', userAuth, async (c) => {
  * 人脸识别登录 (供安卓 Kiosk 终端使用)
  * 接受 multipart/form-data (字段名为 image 或 file) 或 application/json (字段名为 image 的 Base64)
  */
-authRouter.post('/face-login', async (c) => {
+authRouter.post('/face-login', rateLimit({ name: 'face-login', max: 30 }), async (c) => {
+  // 先按 Content-Length 拒绝超大 body，避免 json() 解析前就把内存吃掉
+  const declaredSize = Number(c.req.header('content-length') || 0);
+  if (declaredSize > 12 * 1024 * 1024) {
+    throw new AppError('请求体过大，请压缩图片后重试', 413);
+  }
+
   let imageBuffer = null;
   let filename = 'face.jpg';
 
@@ -116,7 +123,14 @@ authRouter.post('/face-login', async (c) => {
       throw new AppError('请提供人脸图片 Base64 数据 (字段: image)');
     }
     const base64Data = rawImage.replace(/^data:image\/\w+;base64,/, '');
+    // Base64 会把体积放大约 4/3，这里按 8MB 原图上限做双重校验，避免大 body 直接进内存
+    if (base64Data.length > 11 * 1024 * 1024) {
+      throw new AppError('图片数据过大，请压缩后重试（最大 8MB）');
+    }
     imageBuffer = Buffer.from(base64Data, 'base64');
+    if (imageBuffer.length > 8 * 1024 * 1024) {
+      throw new AppError('照片文件大小不能超过 8MB');
+    }
   } else {
     let form;
     try {

@@ -12,15 +12,6 @@ class AuthStore {
     }
     this.listeners = new Set()
     this.loginPromise = null
-
-    // 清理历史残留的本地 Storage，确保每次打开小程序都向服务端获取最新用户状态与封禁状态
-    try {
-      Taro.removeStorageSync('mug_auth_token')
-      Taro.removeStorageSync('mug_auth_user')
-      Taro.removeStorageSync('mock_card_pass_active')
-      Taro.removeStorageSync('mock_card_pass_plan')
-      Taro.removeStorageSync('mock_card_pass_expire')
-    } catch (e) {}
   }
 
   notify() {

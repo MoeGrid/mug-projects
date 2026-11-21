@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Input } from '@tarojs/components'
 import { AtToast } from 'taro-ui'
@@ -40,10 +40,7 @@ export default function BuyPage() {
       }
     }
     init()
-
-    return () => {
-      Taro.eventCenter.trigger('refreshData')
-    }
+    // 返回首页时 index 的 useDidShow 会统一刷新，这里不需要再触发一次事件
   }, [showLoading, showError, hideToast])
 
   // 点击快捷面额

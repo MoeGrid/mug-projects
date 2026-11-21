@@ -17,17 +17,24 @@ import { qrRouter } from './modules/qr/qr.routes.js';
 const app = new Hono();
 
 // 1. 全局异常处理
+// 约定：错误一律返回 { code: 0, msg } + 真实的 HTTP 状态码，
+// 不再把业务错误包装成 HTTP 200（否则客户端无法用 status 区分「参数错 / 无权限 / 过期」）。
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
-    return err.getResponse();
+    // 401/403/404 等：Hono 默认返回纯文本，这里统一成 JSON，客户端才能显示中文原因
+    return c.json({ code: 0, msg: err.message || '请求失败' }, err.status);
   }
   if (err instanceof AppError) {
-    return c.json({
-      code: 0,
-      msg: err.message,
-      data: config.app.debug ? err.stack : null,
-      ...(err.extra || {}),
-    });
+    const status = err.status >= 400 && err.status < 600 ? err.status : 400;
+    return c.json(
+      {
+        code: 0,
+        msg: err.message,
+        data: config.app.debug ? err.stack : null,
+        ...(err.extra || {}),
+      },
+      status
+    );
   }
   console.error('[UNCAUGHT_ERROR]:', err);
   return c.json({ code: 0, msg: config.app.debug ? err.message : '页面错误！请稍后再试～' }, 500);
@@ -42,17 +49,8 @@ app.use(
   })
 );
 
-// 3. 根路径与老商户后台兼容通道
+// 3. 根路径
 app.get('/', (c) => c.text('MUG & TCG Arcade Backend v2.0 (Pure JS)'));
-app.post('/wepay/callback', async (c) => {
-  return walletRouter.fetch(
-    new Request('http://localhost/wechat-pay/notify', {
-      method: 'POST',
-      headers: c.req.raw.headers,
-      body: await c.req.text(),
-    })
-  );
-});
 
 // 4. 全新 RESTful API 路由装载（统一 /api/v1 命名空间）
 const v1 = new Hono();
@@ -66,5 +64,8 @@ v1.route('/admin', adminRouter);
 v1.route('/qr', qrRouter);
 
 app.route('/api/v1', v1);
+
+// 5. 未命中路由：统一 JSON（否则 Hono 返回纯文本 "404 Not Found"，客户端只能显示「网络错误: 404」）
+app.notFound((c) => c.json({ code: 0, msg: '接口不存在' }, 404));
 
 export default app;

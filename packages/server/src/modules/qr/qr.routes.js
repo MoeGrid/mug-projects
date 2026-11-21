@@ -26,6 +26,7 @@ import {
   QrStatus,
   QR_ACTIONS,
 } from '../../services/qrSession.js';
+import { rateLimit } from '../../utils/rateLimit.js';
 
 export const qrRouter = new Hono();
 
@@ -47,12 +48,31 @@ export function buildQrUrl(token, action, ttl) {
  * POST /api/v1/qr/sessions
  * 入参：{ action?: 'login'|'face_bind', device?: string, meta?: object }
  */
-qrRouter.post('/sessions', async (c) => {
+qrRouter.post('/sessions', rateLimit({ name: 'qr-sessions', max: 60 }), async (c) => {
+  // 申请二维码的 body 只应有 action/device/meta 之类的小字段
+  const declaredSize = Number(c.req.header('content-length') || 0);
+  if (declaredSize > 8 * 1024) {
+    throw new AppError('请求体过大', 413);
+  }
+
   const payload = await c.req.json().catch(() => ({}));
   const action = typeof payload?.action === 'string' ? payload.action : QrAction.LOGIN;
 
   if (!QR_ACTIONS.includes(action)) {
     throw new AppError(`不支持的扫码用途: ${action}`);
+  }
+
+  // meta 会一直留在内存里直到会话过期，限制体积，避免被塞大对象
+  if (payload?.meta !== undefined) {
+    let metaStr = '';
+    try {
+      metaStr = JSON.stringify(payload.meta);
+    } catch {
+      throw new AppError('meta 必须是可序列化的对象');
+    }
+    if (metaStr.length > 2048) {
+      throw new AppError('meta 过大（最大 2KB）');
+    }
   }
 
   const session = createSession({

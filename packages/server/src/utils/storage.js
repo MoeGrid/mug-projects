@@ -10,7 +10,7 @@ function md5(buf) {
   return crypto.createHash('md5').update(buf).digest('hex');
 }
 
-export function fsPath(relPath) {
+function fsPath(relPath) {
   const full = path.join(ROOT, relPath);
   if (!full.startsWith(ROOT + path.sep) && full !== ROOT) {
     throw new Error('非法路径');

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Taro, { useReachBottom, usePullDownRefresh } from '@tarojs/taro'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { AtSearchBar, AtAvatar, AtTag, AtLoadMore, AtToast, AtTabs } from 'taro-ui'
 
 import {
@@ -19,7 +19,7 @@ import './index.scss'
 const defaultAvatar = '/static/avatar.jpg'
 
 export default function AdminIndexPage() {
-  const { toastProps, showError, showSuccess } = useToast()
+  const { toastProps, showError } = useToast()
 
   // 0: 监控抽查 (TCG在场), 1: 财务看板, 2: 用户管理
   const [mainTab, setMainTab] = useState(0)
@@ -46,7 +46,6 @@ export default function AdminIndexPage() {
     month_recharge: '0.00',
     today_consume: '0.00',
     month_consume: '0.00',
-    active_tcg_count: 0,
   })
   // 财务子 Tab: 0 充值明细, 1 消费明细
   const [financeTab, setFinanceTab] = useState(0)
@@ -414,7 +413,14 @@ export default function AdminIndexPage() {
                       </View>
                     ))}
                     <AtLoadMore
-                      status={rechargePager.page < rechargePager.total ? 'loading' : 'noMore'}
+                      status={
+                        loadingRecharges
+                          ? 'loading'
+                          : rechargePager.page < rechargePager.total
+                            ? 'more'
+                            : 'noMore'
+                      }
+                      moreText='加载更多'
                       loadingText='加载中...'
                       noMoreText='没有更多充值记录了'
                     />
@@ -460,7 +466,14 @@ export default function AdminIndexPage() {
                       </View>
                     ))}
                     <AtLoadMore
-                      status={consumptionPager.page < consumptionPager.total ? 'loading' : 'noMore'}
+                      status={
+                        loadingConsumptions
+                          ? 'loading'
+                          : consumptionPager.page < consumptionPager.total
+                            ? 'more'
+                            : 'noMore'
+                      }
+                      moreText='加载更多'
                       loadingText='加载中...'
                       noMoreText='没有更多消费记录了'
                     />
@@ -551,7 +564,14 @@ export default function AdminIndexPage() {
                     </View>
                   ))}
                   <AtLoadMore
-                    status={userPager.page < userPager.total ? 'loading' : 'noMore'}
+                    status={
+                      loadingUsers
+                        ? 'loading'
+                        : userPager.page < userPager.total
+                          ? 'more'
+                          : 'noMore'
+                    }
+                    moreText='加载更多'
                     loadingText='正在加载中...'
                     noMoreText='没有更多用户了'
                   />

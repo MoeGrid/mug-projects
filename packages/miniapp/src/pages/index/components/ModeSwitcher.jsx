@@ -1,4 +1,3 @@
-import React from 'react'
 import { View, Text } from '@tarojs/components'
 
 export default function ModeSwitcher({ activeMode, onSwitch }) {

@@ -1,4 +1,3 @@
-import React from 'react'
 import { View, Text, Picker } from '@tarojs/components'
 import PassCard from './PassCard'
 

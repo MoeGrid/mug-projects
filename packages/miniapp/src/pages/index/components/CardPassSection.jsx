@@ -1,70 +1,32 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
-import { getTcgPassOptions, tcgEntry, buyTcgPass } from '@/api'
+import { tcgEntry, buyTcgPass } from '@/api'
 import { authStore } from '@/stores/auth'
 import PassCard from './PassCard'
 import './CardPassSection.scss'
 
+const DEFAULT_PRICING = { day_price: 15, month_price: 180 }
+const DEFAULT_STATUS = { isEntryToday: false, hasTcgPass: false, tcgDays: 0 }
+
 export default function CardPassSection({
-  user,
   available,
-  pricing: propPricing,
-  status: propStatus,
+  pricing = DEFAULT_PRICING,
+  status = DEFAULT_STATUS,
   onRefresh,
-  onRechargeSuccess,
   showDialog,
   showLoading,
   showSuccess,
   showError,
 }) {
-  const [localPricing, setLocalPricing] = useState({ day_price: 15, month_price: 180 })
-  const [localStatus, setLocalStatus] = useState({
-    isEntryToday: false,
-    hasTcgPass: false,
-    tcgDays: 0,
-  })
   const [activating, setActivating] = useState(false)
 
-  // 独立使用时的兜底加载逻辑
-  const fetchStatus = useCallback(async () => {
-    if (onRefresh) {
-      return onRefresh()
-    }
-    try {
-      const res = await getTcgPassOptions()
-      if (res) {
-        if (res.day_price) {
-          setLocalPricing({
-            day_price: Number(res.day_price),
-            month_price: Number(res.month_price),
-          })
-        }
-        setLocalStatus({
-          isEntryToday: Boolean(res.is_entry_today),
-          hasTcgPass: Boolean(res.has_tcg_pass),
-          tcgDays: Number(res.tcg_days || 0),
-        })
-      }
-    } catch (e) {
-      // 保持当前状态
-    }
-  }, [onRefresh])
-
-  useEffect(() => {
-    if (!propStatus) {
-      fetchStatus()
-    }
-  }, [fetchStatus, propStatus])
-
-  // 优先取 props（父级统一数据源），兜底取 local
-  const pricing = propPricing || localPricing
-  const status = propStatus || localStatus
-
-  // 结合 store 中的数据（以接口返回的 status 为准）
-  const tcgDays = status.hasTcgPass ? status.tcgDays : Number(available?.tcg_days || 0)
-  const hasTcgPass = status.hasTcgPass || tcgDays > 0
-  const isEntryToday = status.isEntryToday
+  // 以服务端 status 为唯一事实来源：
+  // 之前用 `status.hasTcgPass || available.tcg_days > 0` 合并两个数据源，
+  // PASS 刚过期或 options 请求失败时会在界面上显示「免费入场」，而服务端实际会扣 day_price。
+  const hasTcgPass = Boolean(status.hasTcgPass)
+  const tcgDays = hasTcgPass ? Number(status.tcgDays || 0) : 0
+  const isEntryToday = Boolean(status.isEntryToday)
 
   const currentBalance = Number(available?.balance || 0)
   const isBalanceEnoughForDay = currentBalance >= pricing.day_price
@@ -94,10 +56,7 @@ export default function CardPassSection({
             const res = await tcgEntry()
             showSuccess(res.message || '入场成功，欢迎进店！')
             // 入场已成功，后续刷新失败只影响展示，不能报成「入场失败」诱导重复扣费
-            Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
-            if (onRechargeSuccess) {
-              onRechargeSuccess(res)
-            }
+            Promise.allSettled([authStore.refreshAvailable(), onRefresh?.()])
           } catch (e) {
             showError(e.message || '入场登记失败，请稍后重试')
           } finally {
@@ -134,10 +93,7 @@ export default function CardPassSection({
           const res = await tcgEntry()
           showSuccess(res.message || '入场成功，欢迎进店！')
           // 入场已成功，后续刷新失败只影响展示，不能报成「入场失败」诱导重复扣费
-          Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
-          if (onRechargeSuccess) {
-            onRechargeSuccess(res)
-          }
+          Promise.allSettled([authStore.refreshAvailable(), onRefresh?.()])
         } catch (e) {
           showError(e.message || '入场失败，请稍后重试')
         } finally {
@@ -173,10 +129,7 @@ export default function CardPassSection({
           const res = await buyTcgPass()
           showSuccess(res.message || 'TCG PASS 办理成功！')
           // 钱已经扣了：刷新失败不能报成「办理失败」，否则重试会再扣一次（服务端非幂等）
-          Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
-          if (onRechargeSuccess) {
-            onRechargeSuccess(res)
-          }
+          Promise.allSettled([authStore.refreshAvailable(), onRefresh?.()])
         } catch (e) {
           showError(e.message || '办理失败，请稍后重试')
         }

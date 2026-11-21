@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Taro, { usePullDownRefresh, useReachBottom } from '@tarojs/taro'
 import { View, Text } from '@tarojs/components'
 import { AtLoadMore, AtToast } from 'taro-ui'
@@ -267,7 +267,7 @@ export default function RecordPage() {
       {currentRecords.length > 0 && (
         <View style={{ marginTop: '20px' }}>
           <AtLoadMore
-            status={hasMore ? 'loading' : 'noMore'}
+            status={loading ? 'loading' : hasMore ? 'more' : 'noMore'}
             moreText='加载更多记录'
             loadingText='正在同步记录...'
             noMoreText='已显示全部记录'

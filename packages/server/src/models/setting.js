@@ -16,18 +16,4 @@ export async function getJsonSetting(key, def = null) {
   }
 }
 
-export async function setSetting(key, value, remark = null) {
-  const valStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
-  await db
-    .insertInto('mug_setting')
-    .values({
-      key,
-      value: valStr,
-      remark: remark || undefined,
-    })
-    .onDuplicateKeyUpdate({
-      value: valStr,
-      ...(remark ? { remark } : {}),
-    })
-    .execute();
-}
+

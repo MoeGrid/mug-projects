@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Button } from '@tarojs/components'
 import './index.scss'
@@ -13,7 +13,7 @@ import './index.scss'
  * - wx.requirePrivacyAuthorize 校验/主动调起隐私授权
  * - 同意按钮必须为 openType="agreePrivacyAuthorization"
  */
-export default function PrivacyPopup({ onAgree, onDisagree }) {
+export default function PrivacyPopup({ onAgree }) {
   const [visible, setVisible] = useState(false)
   const [contractName, setContractName] = useState('《小程序用户隐私保护指引》')
   const resolveRef = useRef(null)
@@ -94,7 +94,6 @@ export default function PrivacyPopup({ onAgree, onDisagree }) {
       icon: 'none',
       duration: 2500,
     })
-    if (onDisagree) onDisagree()
   }
 
   if (!visible) return null

@@ -8,7 +8,7 @@ export function toCents(val) {
   return Math.round(num * 100);
 }
 
-export function fromCents(cents) {
+function fromCents(cents) {
   return cents / 100;
 }
 

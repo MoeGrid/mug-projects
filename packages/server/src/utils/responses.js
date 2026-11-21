@@ -21,10 +21,3 @@ export function ok(data) {
   return { code: 1, data };
 }
 
-/**
- * 业务错误返回包装
- * @param {string} msg
- */
-export function fail(msg) {
-  return { code: 0, msg };
-}

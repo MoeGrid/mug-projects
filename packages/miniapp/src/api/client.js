@@ -63,20 +63,24 @@ export async function request(method, url, data, isRetry = false) {
               reject(new Error('自动重新登录失败，请退出重试'))
             }
           } else {
-            // 非 200 也把服务端的提示透出来（二维码过期/无效这些比「网络错误: 410」有用）
+            // 非 200：服务端已统一返回 { code:0, msg }，这里把 msg/业务码都透给上层
+            // （仍兼容网关/代理直接返回纯文本的情况）
             let body = res.data
             if (typeof body === 'string') {
               try {
                 body = JSON.parse(body)
               } catch (e) {}
             }
-            // 服务端的 401/403 是纯文本（HTTPException），这里要兼容，否则只会显示「网络错误: 403」
             const msg =
               (body && body.msg) ||
               (typeof body === 'string' ? body.slice(0, 100) : '') ||
               `网络错误: ${res.statusCode}`
             const err = new Error(msg)
             err.status = res.statusCode
+            if (body && typeof body === 'object') {
+              err.code = body.code
+              err.extra = body
+            }
             reject(err)
           }
         } catch (err) {
@@ -95,7 +99,6 @@ export const get = (url, params) => request('GET', url, params)
 export const post = (url, data) => request('POST', url, data)
 export const put = (url, data) => request('PUT', url, data)
 export const patch = (url, data) => request('PATCH', url, data)
-export const del = (url, data) => request('DELETE', url, data)
 
 /**
  * 上传文件客户端
@@ -151,7 +154,20 @@ export async function upload(url, options, isRetry = false) {
               reject(new Error('自动重新登录失败，请退出重试'))
             }
           } else {
-            reject(new Error(`上传错误: ${res.statusCode}`))
+            let body = res.data
+            if (typeof body === 'string') {
+              try {
+                body = JSON.parse(body)
+              } catch (e) {}
+            }
+            const msg = (body && body.msg) || `上传错误: ${res.statusCode}`
+            const err = new Error(msg)
+            err.status = res.statusCode
+            if (body && typeof body === 'object') {
+              err.code = body.code
+              err.extra = body
+            }
+            reject(err)
           }
         } catch (err) {
           reject(err)

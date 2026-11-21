@@ -8,11 +8,6 @@ dayjs.extend(timezone);
 
 const TZ = 'Asia/Shanghai';
 
-/** 北京时间 YYYY-MM-DD */
-export function dateStr(d = new Date()) {
-  return dayjs(d).tz(TZ).format('YYYY-MM-DD');
-}
-
 /** 北京时间 YYYY-MM-DD HH:mm:ss */
 export function dateTimeStr(d = new Date()) {
   return dayjs(d).tz(TZ).format('YYYY-MM-DD HH:mm:ss');
@@ -67,15 +62,6 @@ export function daysFromExpire(expireDate) {
   if (!expire.isValid() || expire.isBefore(nowTs)) return 0;
   const diffMs = expire.diff(nowTs, 'millisecond');
   return Math.max(Math.ceil(diffMs / 86400000), 0);
-}
-
-// 别名兼容
-export const calculateTcgExpire = calculateExpire;
-export const daysFromTcgExpire = daysFromExpire;
-
-/** 当前北京时间加减天数 */
-export function dateOffsetDays(days) {
-  return dayjs().tz(TZ).add(days, 'day').format('YYYY-MM-DD');
 }
 
 /** 当天起始时间 YYYY-MM-DD 00:00:00 */

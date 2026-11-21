@@ -1,6 +1,6 @@
 {
   "name": "mug-miniapp",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "private": true,
   "description": "",
   "templateInfo": {
@@ -35,7 +35,6 @@
     "@tarojs/shared": "4.3.2",
     "@tarojs/taro": "4.3.2",
     "react": "^18.0.0",
-    "react-dom": "^18.0.0",
     "taro-ui": "^3.2.1"
   },
   "devDependencies": {
@@ -43,14 +42,12 @@
     "@tarojs/cli": "4.3.2",
     "@tarojs/plugin-mini-ci": "4.3.2",
     "@tarojs/vite-runner": "4.3.2",
-    "@types/react": "^18.0.0",
     "@vitejs/plugin-react": "^4.1.0",
     "babel-preset-taro": "4.3.2",
     "miniprogram-ci": "^2.1.31",
     "postcss": "^8.4.18",
     "react-refresh": "^0.11.0",
     "sass": "1.63.2",
-    "terser": "^5.16.8",
     "vite": "^4.2.0"
   }
 }

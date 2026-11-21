@@ -64,18 +64,6 @@ export async function createOrder(param) {
   }
 }
 
-/** 关单（备用） */
-export async function closeOrder(outTradeNo) {
-  try {
-    await wxpay().v3.pay.transactions.outTradeNo.$out_trade_no$.close.post(
-      { mchid: config.wechat.payMchId },
-      { out_trade_no: outTradeNo }
-    );
-  } catch (err) {
-    throw toAppError('关单', err);
-  }
-}
-
 /** 小程序调起支付签名（paySign） */
 export function paySign(prepayId) {
   const params = {

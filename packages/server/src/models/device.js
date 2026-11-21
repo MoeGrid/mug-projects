@@ -24,10 +24,3 @@ export async function listGroupsWithDevices() {
   );
 }
 
-export async function attachDeviceAndGroup(log) {
-  if (log.device_id === null) return { ...log, device: null };
-  const device = await db.selectFrom('mug_device').selectAll().where('id', '=', log.device_id).executeTakeFirst();
-  if (!device) return { ...log, device: null };
-  const group = await db.selectFrom('mug_device_group').selectAll().where('id', '=', device.group_id).executeTakeFirst();
-  return { ...log, device: { ...device, device_group: group ?? null } };
-}

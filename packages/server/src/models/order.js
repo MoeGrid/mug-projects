@@ -14,10 +14,3 @@ export async function findOrderByWeOrderId(dbh, weOrderId) {
   return dbh.selectFrom('mug_order').selectAll().where('we_order_id', '=', weOrderId).executeTakeFirst();
 }
 
-export async function updateOrder(dbh, id, data) {
-  await dbh
-    .updateTable('mug_order')
-    .set({ ...data, update_time: tsNow() })
-    .where('id', '=', id)
-    .execute();
-}

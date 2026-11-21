@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { View, Text, Button, RichText } from '@tarojs/components'
 import {
@@ -31,7 +31,7 @@ import './index.scss'
 const DEFAULT_AVATAR = '/static/avatar.jpg'
 
 export default function IndexPage() {
-  const { toastProps, showLoading, showSuccess, showError, showText, hideToast } = useToast()
+  const { toastProps, showLoading, showSuccess, showError, hideToast } = useToast()
   const [user, setUser] = useState(authStore.user)
   const [available, setAvailable] = useState(authStore.available)
 
@@ -62,8 +62,9 @@ export default function IndexPage() {
 
   // 设备列表与选中状态 (街机模式)
   const [deviceList, setDeviceList] = useState([])
-  const [pickerColumns, setPickerColumns] = useState([[], []])
-  const [pickerValue, setPickerValue] = useState([0, 0])
+  // Picker 的「草稿」状态：滚动过程中只改这里，点确定才提交到 selectedGroup/selectedDevice，
+  // 避免用户取消选择后卡片机台与 Picker 显示不一致
+  const [pickerDraft, setPickerDraft] = useState({ columns: [[], []], value: [0, 0] })
   const [selectedGroup, setSelectedGroup] = useState(null)
   const [selectedDevice, setSelectedDevice] = useState(null)
 
@@ -149,12 +150,17 @@ export default function IndexPage() {
   // 加载设备列表
   const loadDevices = useCallback(async () => {
     const res = await getArcadeDevices()
-    if (!res || !res.length) return
+    if (!res || !res.length) {
+      // 机台全部下架时清空旧状态，避免继续对已下架机台投币
+      setDeviceList([])
+      setSelectedGroup(null)
+      setSelectedDevice(null)
+      setPickerDraft({ columns: [[], []], value: [0, 0] })
+      return
+    }
     setDeviceList(res)
 
     const col0 = res.map((item) => item.name)
-    const col1 = (res[0].devices || []).map((d) => d.name)
-    setPickerColumns([col0, col1])
 
     const savedDeviceId = settingStore.state.device
     let matchedGroup = null
@@ -176,20 +182,25 @@ export default function IndexPage() {
     if (matchedDevice) {
       setSelectedGroup(matchedGroup)
       setSelectedDevice(matchedDevice)
-      setPickerValue([matchedGroupIdx, matchedDeviceIdx])
-      setPickerColumns([col0, (matchedGroup.devices || []).map((d) => d.name)])
+      setPickerDraft({
+        columns: [col0, (matchedGroup.devices || []).map((d) => d.name)],
+        value: [matchedGroupIdx, matchedDeviceIdx],
+      })
     } else {
       setSelectedGroup(res[0])
       setSelectedDevice(res[0].devices?.[0] || null)
-      setPickerValue([0, 0])
+      setPickerDraft({
+        columns: [col0, (res[0].devices || []).map((d) => d.name)],
+        value: [0, 0],
+      })
     }
   }, [])
 
   // TCG 专区价格与状态提升至页面层（统一数据流与下拉等待）
   const [tcgPricing, setTcgPricing] = useState({ day_price: 15, month_price: 180 })
   const [tcgStatus, setTcgStatus] = useState({
-    isActiveToday: false,
-    hasMonthlyPass: false,
+    isEntryToday: false,
+    hasTcgPass: false,
     tcgDays: 0,
   })
 
@@ -235,18 +246,24 @@ export default function IndexPage() {
     }
   }, [refreshAllData, showError])
 
+  // 封禁状态统一处理：初始化与切前台刷新后都走这里
+  const applyUserState = useCallback((u) => {
+    if (u?.is_ban) {
+      setBanMsg(u.ban_msg || '您的账号已被封禁')
+      setBanModalVisible(true)
+      return true
+    }
+    return false
+  }, [])
+
   // 初始化与登录
   useEffect(() => {
     async function init() {
       try {
         Taro.showLoading({ title: '加载中...', mask: true })
         const currentUser = await authStore.login()
-        if (currentUser?.is_ban) {
-          setBanMsg(currentUser.ban_msg || '您的账号已被封禁')
-          setBanModalVisible(true)
-        } else {
-          await refreshAllData()
-        }
+        if (applyUserState(currentUser)) return
+        await refreshAllData()
       } catch (e) {
         showError(e.message || '加载失败')
       } finally {
@@ -274,10 +291,12 @@ export default function IndexPage() {
       isFirstShowRef.current = false
       return
     }
-    if (authStore.token && !authStore.user?.is_ban) {
-      authStore.refreshUser()
+    if (!authStore.token) return
+    // 切前台时复查封禁状态：运行中被封禁也要弹窗，而不是只隐藏部分 UI
+    authStore.refreshUser().then((u) => {
+      if (applyUserState(u || authStore.user)) return
       silentRefresh()
-    }
+    })
   })
 
   // 原生整页面下拉刷新：严格等待 MUG 资产、街机机台、TCG 状态全部完成，成功给出轻提示，失败明确弹窗
@@ -292,31 +311,29 @@ export default function IndexPage() {
     }
   })
 
-  // 多列联动选择设备
+  // 多列联动选择设备：滚动只改草稿，确认后才提交
   const handlePickerColumnChange = (e) => {
     const { column, value } = e.detail
-    if (column === 0) {
-      const group = deviceList[value]
-      if (group) {
-        const nextCol1 = (group.devices || []).map((d) => d.name)
-        setPickerColumns([pickerColumns[0], nextCol1])
-        setPickerValue([value, 0])
-      }
-    } else if (column === 1) {
-      setPickerValue([pickerValue[0], value])
+    if (column !== 0) {
+      setPickerDraft((prev) => ({ ...prev, value: [prev.value[0], value] }))
+      return
     }
+    const group = deviceList[value]
+    if (!group) return
+    setPickerDraft({
+      columns: [deviceList.map((g) => g.name), (group.devices || []).map((d) => d.name)],
+      value: [value, 0],
+    })
   }
 
   const handlePickerChange = (e) => {
     const [groupIdx, deviceIdx] = e.detail.value
-    const group = deviceList[groupIdx]
-    if (group && group.devices && group.devices[deviceIdx]) {
-      const dev = group.devices[deviceIdx]
-      setSelectedGroup(group)
-      setSelectedDevice(dev)
-      setPickerValue([groupIdx, deviceIdx])
-      settingStore.setSelectedDeviceId(dev.id)
-    }
+    const group = deviceList[groupIdx] || null
+    const dev = group?.devices?.[deviceIdx] || null
+    setSelectedGroup(group)
+    setSelectedDevice(dev)
+    setPickerDraft((prev) => ({ ...prev, value: [groupIdx, deviceIdx] }))
+    if (dev) settingStore.setSelectedDeviceId(dev.id)
   }
 
   // 蓝牙投币流程
@@ -366,18 +383,20 @@ export default function IndexPage() {
       if (typeof msg === 'string' && msg.startsWith('authorize')) {
         showDialog({
           title: '权限提示',
-          content: '投币功能需要使用蓝牙和定位权限！请点击确定打开权限设置。',
+          content: '投币功能需要使用蓝牙权限！请点击确定打开权限设置。',
           cancelText: '取消',
           confirmText: '前往设置',
           onConfirm: () => {
             Taro.openSetting({
               success: (res) => {
-                if (res.authSetting['scope.bluetooth'] && res.authSetting['scope.userLocation']) {
+                // 只申请过 scope.bluetooth；scope.userLocation 从未申请，不能拿它当判断条件
+                if (res.authSetting['scope.bluetooth']) {
                   showSuccess('授权成功，请重试')
                 } else {
-                  showError('仍未开启必要权限')
+                  showError('蓝牙权限仍未开启')
                 }
               },
+              fail: () => showError('打开设置失败'),
             })
           },
         })
@@ -431,8 +450,8 @@ export default function IndexPage() {
         <ArcadeConsole
           selectedGroup={selectedGroup}
           selectedDevice={selectedDevice}
-          pickerColumns={pickerColumns}
-          pickerValue={pickerValue}
+          pickerColumns={pickerDraft.columns}
+          pickerValue={pickerDraft.value}
           onPickerChange={handlePickerChange}
           onPickerColumnChange={handlePickerColumnChange}
           insertType={insertType}
@@ -445,7 +464,6 @@ export default function IndexPage() {
       {/* 4. 模式 B: 卡牌专区开台与通行 */}
       {user && !user.is_ban && activeMode === 'card' && (
         <CardPassSection
-          user={user}
           available={available}
           pricing={tcgPricing}
           status={tcgStatus}

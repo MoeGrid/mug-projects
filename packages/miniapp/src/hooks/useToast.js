@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 
 /**
  * 统一基于 Taro-UI AtToast 的轻提示与加载 Hook
@@ -14,6 +14,16 @@ export function useToast() {
     image: '',
   })
   const timerRef = useRef(null)
+
+  // 页面卸载时清掉定时器，避免卸载后 setState
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+        timerRef.current = null
+      }
+    }
+  }, [])
 
   const hideToast = useCallback(() => {
     if (timerRef.current) {
@@ -118,5 +128,3 @@ export function useToast() {
     hideToast,
   }
 }
-
-export default useToast

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from '@tarojs/taro'
 import { View, Text, Button, Input, Switch } from '@tarojs/components'
 import {
@@ -34,6 +34,7 @@ export default function AdminUserPage() {
 
   const [currentTab, setCurrentTab] = useState(0)
   const [entity, setEntity] = useState(null)
+  const [loadError, setLoadError] = useState(false)
 
   // 调配弹窗状态: modalType = 1 (余额) | 2 (MUG天数) | 3 (TCG月卡天数) | null
   const [modalType, setModalType] = useState(null)
@@ -49,19 +50,26 @@ export default function AdminUserPage() {
       }
       u.avatarUrl = u.avatar ? uploadUrl(u.avatar) : defaultAvatar
       setEntity(u)
+      setLoadError(false)
       hideToast()
     } catch (e) {
+      setLoadError(true)
       showError(e.message || '查找失败')
     }
   }, [uid, showLoading, showError, hideToast])
 
   useEffect(() => {
     async function init() {
-      await authStore.login()
-      await loadData()
+      try {
+        await authStore.login()
+        await loadData()
+      } catch (e) {
+        setLoadError(true)
+        showError(e.message || '加载失败')
+      }
     }
     init()
-  }, [loadData])
+  }, [loadData, showError])
 
   // 保存用户基本资料
   const handleSave = async () => {
@@ -119,7 +127,20 @@ export default function AdminUserPage() {
     }
   }
 
-  if (!entity) return null
+  // 加载中/失败也要渲染一个可交互的状态，不能 return null——
+  // 否则 AtToast 不会挂载，用户看到的是纯白页且没有任何重试入口。
+  if (!entity) {
+    return (
+      <View className='page-admin-user'>
+        <View className='empty-card' onClick={loadData} style={{ padding: '80px 30px', textAlign: 'center' }}>
+          <Text className='empty-title' style={{ color: '#64748b', fontSize: '28px' }}>
+            {loadError ? '加载失败，点击重试' : '加载中...'}
+          </Text>
+        </View>
+        <AtToast {...toastProps} />
+      </View>
+    )
+  }
 
   return (
     <View className='page-admin-user'>

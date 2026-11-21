@@ -1,7 +1,5 @@
-// Event 数据访问，Setting 请使用 ./setting.js
+// Event 数据访问；Setting 相关请直接从 ./setting.js 引入
 import { db } from '../db/client.js';
-
-export { getSetting, getJsonSetting, setSetting } from './setting.js';
 
 export async function listActiveEvents(now) {
   return db

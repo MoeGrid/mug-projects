@@ -2,7 +2,11 @@
 import { config } from '../config.js';
 import { AppError } from '../utils/responses.js';
 
-export function toPersonId(userId) {
+// 人脸服务超时：查询/检索 5s，上传注册 10s（上传大图更慢）
+const FACE_TIMEOUT_MS = 5000;
+const FACE_UPLOAD_TIMEOUT_MS = 10000;
+
+function toPersonId(userId) {
   return String(userId);
 }
 
@@ -27,6 +31,7 @@ export async function getFaceStatus(userId) {
     const res = await fetch(url, {
       method: 'GET',
       headers: getAuthHeaders(),
+      signal: AbortSignal.timeout(FACE_TIMEOUT_MS),
     });
 
     if (res.status === 200) {
@@ -67,6 +72,7 @@ export async function registerFace(userId, nickname, imageBuffer, filename = 'fa
     await fetch(deleteUrl, {
       method: 'DELETE',
       headers: getAuthHeaders(),
+      signal: AbortSignal.timeout(FACE_TIMEOUT_MS),
     });
   } catch (e) {
     // 忽略删除失败
@@ -81,14 +87,21 @@ export async function registerFace(userId, nickname, imageBuffer, filename = 'fa
   const blob = new Blob([imageBuffer], { type: 'image/jpeg' });
   form.append('images', blob, filename);
 
-  const res = await fetch(createUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${config.face.apiKey}`,
-      Accept: 'application/json',
-    },
-    body: form,
-  });
+  let res;
+  try {
+    res = await fetch(createUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.face.apiKey}`,
+        Accept: 'application/json',
+      },
+      body: form,
+      signal: AbortSignal.timeout(FACE_UPLOAD_TIMEOUT_MS),
+    });
+  } catch (e) {
+    console.error('[FaceRegister] 请求人脸服务失败:', e.message);
+    throw new AppError('人脸服务暂不可用，请稍后重试');
+  }
 
   const resData = await res.json().catch(() => null);
 
@@ -115,10 +128,17 @@ export async function deleteFace(userId) {
   const baseUrl = config.face.host.replace(/\/+$/, '');
   const url = `${baseUrl}/v1/collections/${config.face.collection}/persons/${personId}`;
 
-  const res = await fetch(url, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+      signal: AbortSignal.timeout(FACE_TIMEOUT_MS),
+    });
+  } catch (e) {
+    console.error('[FaceDelete] 请求人脸服务失败:', e.message);
+    throw new AppError('人脸服务暂不可用，请稍后重试');
+  }
 
   if (res.status === 200 || res.status === 204 || res.status === 404) {
     return { registered: false, message: '人脸档案已注销' };
@@ -148,14 +168,25 @@ export async function searchFace(imageBuffer, filename = 'face.jpg', options = {
     form.append('threshold', String(options.threshold));
   }
 
-  const res = await fetch(searchUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${config.face.apiKey}`,
-      Accept: 'application/json',
-    },
-    body: form,
-  });
+  let res;
+  try {
+    res = await fetch(searchUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.face.apiKey}`,
+        Accept: 'application/json',
+      },
+      body: form,
+      signal: AbortSignal.timeout(FACE_TIMEOUT_MS),
+    });
+  } catch (e) {
+    console.error('[FaceSearch] 请求人脸服务失败:', e.message);
+    throw new AppError('人脸服务暂不可用，请稍后重试', 503, {
+      error_type: 'SYSTEM_ERROR',
+      title: '服务暂不可用',
+      need_register: false,
+    });
+  }
 
   const resData = await res.json().catch(() => null);
 

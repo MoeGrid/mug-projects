@@ -21,12 +21,3 @@ export function buyTcgPass() {
   return post('/api/v1/tcg/passes/buy')
 }
 
-/**
- * 获取 TCG 卡牌赛事与活动
- */
-export function getTcgEvents() {
-  return get('/api/v1/tcg/events')
-}
-
-
-
