@@ -153,7 +153,7 @@ export default function AdminUserPage() {
             <View className='card-left'>
               <Text className='asset-name'>💰 账户余额</Text>
               <Text className='asset-val'>¥{entity.balance || 0}</Text>
-              <Text className='asset-sub'>用于街机投币与TCG开通畅玩扣费</Text>
+              <Text className='asset-sub'>用于街机投币与TCG入场扣费</Text>
             </View>
             <View className='card-right'>
               <AtButton
@@ -166,11 +166,11 @@ export default function AdminUserPage() {
             </View>
           </View>
 
-          {/* 资产 2: 街机 MUG 畅玩 */}
+          {/* 资产 2: 街机 MUG PASS */}
           <View className='asset-card'>
             <View className='card-left'>
               <View className='title-with-tag'>
-                <Text className='asset-name'>🎵 音游 MUG 畅玩</Text>
+                <Text className='asset-name'>🎵 音游 MUG PASS</Text>
                 {entity.arcade_days > 0 ? (
                   <AtTag size='small' circle customStyle={{ backgroundColor: '#10b981', color: '#fff' }}>
                     生效中
@@ -332,7 +332,7 @@ export default function AdminUserPage() {
         >
           <AtModalHeader>
             {modalType === 1 && '调配账户余额 (元)'}
-            {modalType === 2 && '调配 MUG 畅玩天数'}
+            {modalType === 2 && '调配 MUG PASS 天数'}
             {modalType === 3 && '调配 TCG PASS 天数'}
           </AtModalHeader>
           <AtModalContent>

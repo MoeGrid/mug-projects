@@ -5,7 +5,7 @@ import {userAuth} from '../../utils/middleware.js';
 import {AppError, ok} from '../../utils/responses.js';
 import {calculateExpire, daysFromExpire} from '../../utils/date.js';
 import {subMoney, toMoney} from '../../utils/money.js';
-import {findUser, updateUser} from '../../models/user.js';
+import {findUser, findUserForUpdate, updateUser} from '../../models/user.js';
 import {insertBalanceLog} from '../../models/balance_log.js';
 import {getJsonSetting} from '../../models/setting.js';
 import {findActiveTcgSession, insertTcgRecord} from '../../models/tcg_record.js';
@@ -70,7 +70,8 @@ tcgRouter.post('/entry', async (c) => {
   const dayPrice = pricing.day_price;
 
   return db.transaction().execute(async (trx) => {
-    const freshUser = await findUser(trx, user.id);
+    // 锁用户行后再读余额，避免并发入场/购卡时读改写互相覆盖
+    const freshUser = await findUserForUpdate(trx, user.id);
     if (!freshUser) throw new AppError('用户不存在');
 
     // 1. 检查今日是否已完成入场
@@ -171,7 +172,8 @@ tcgRouter.post('/passes/buy', async (c) => {
   const monthPrice = pricing.month_price;
 
   return db.transaction().execute(async (trx) => {
-    const freshUser = await findUser(trx, user.id);
+    // 锁用户行后再读余额，避免并发入场/购卡时读改写互相覆盖
+    const freshUser = await findUserForUpdate(trx, user.id);
     if (!freshUser) throw new AppError('用户不存在');
 
     const currentBalance = freshUser.balance;

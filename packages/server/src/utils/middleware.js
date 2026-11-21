@@ -19,6 +19,8 @@ export async function userAuth(c, next) {
   if (!uid) throw new HTTPException(401, { message: '登录已过期' });
   const user = await findUser(db, uid);
   if (!user) throw new HTTPException(401, { message: '用户不存在' });
+  // 封禁必须在服务端生效：客户端隐藏 UI 只是体验层，不能作为权限边界
+  if (user.is_ban) throw new HTTPException(403, { message: '账号已被封禁' });
   c.set('user', user);
   await next();
 }

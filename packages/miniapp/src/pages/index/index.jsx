@@ -355,8 +355,9 @@ export default function IndexPage() {
           throw new Error('不支持的设备版本')
       }
 
-      await authStore.refreshAvailable()
-      showSuccess(insertType === 2 ? '畅玩投币成功 (免扣币)' : '投币成功！')
+      showSuccess(insertType === 2 ? 'MUG PASS投币成功！' : '投币成功！')
+      // 币已经出了：刷新余额失败不能回滚成「投币失败」，否则用户会重复投币
+      authStore.refreshAvailable().catch(() => {})
     } catch (e) {
       console.error(e)
       hideToast()

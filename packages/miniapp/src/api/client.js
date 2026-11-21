@@ -28,43 +28,59 @@ export async function request(method, url, data, isRetry = false) {
       url: joinUrl(baseUrl, url),
       data,
       method: method.toUpperCase(),
+      timeout: 15000,
       header: {
         Authorization: authStore.token ? `Bearer ${authStore.token}` : '',
         'Content-Type': 'application/json',
       },
       success: async (res) => {
-        if (res.statusCode === 200) {
-          if (res.data.code > 0) {
-            resolve(res.data.data)
-          } else {
-            reject(new Error(res.data.msg || '业务处理失败'))
-          }
-        } else if (res.statusCode === 401) {
-          if (isNoAuth || isRetry) {
-            authStore.clear()
-            reject(new Error('登录凭证已失效，请重新进入小程序'))
-            return
-          }
+        try {
+          if (res.statusCode === 200) {
+            const body = res.data && typeof res.data === 'object' ? res.data : {}
+            if (body.code > 0) {
+              resolve(body.data)
+            } else {
+              const err = new Error(body.msg || '业务处理失败')
+              err.status = res.statusCode
+              err.code = body.code
+              err.extra = body
+              reject(err)
+            }
+          } else if (res.statusCode === 401) {
+            if (isNoAuth || isRetry) {
+              authStore.clear()
+              reject(new Error('登录凭证已失效，请重新进入小程序'))
+              return
+            }
 
-          // 本地 Token 过期失效时，自动触发强制静默重新登录并无感重发请求
-          try {
-            await authStore.login(true)
-            const retryRes = await request(method, url, data, true)
-            resolve(retryRes)
-          } catch (retryErr) {
-            authStore.clear()
-            reject(new Error('自动重新登录失败，请退出重试'))
-          }
-        } else {
-          // 非 200 也把服务端的 msg 透出来（二维码过期/无效这些提示比「网络错误: 410」有用）
-          let body = res.data
-          if (typeof body === 'string') {
+            // 本地 Token 过期失效时，自动触发强制静默重新登录并无感重发请求
             try {
-              body = JSON.parse(body)
-            } catch (e) {}
+              await authStore.login(true)
+              const retryRes = await request(method, url, data, true)
+              resolve(retryRes)
+            } catch (retryErr) {
+              authStore.clear()
+              reject(new Error('自动重新登录失败，请退出重试'))
+            }
+          } else {
+            // 非 200 也把服务端的提示透出来（二维码过期/无效这些比「网络错误: 410」有用）
+            let body = res.data
+            if (typeof body === 'string') {
+              try {
+                body = JSON.parse(body)
+              } catch (e) {}
+            }
+            // 服务端的 401/403 是纯文本（HTTPException），这里要兼容，否则只会显示「网络错误: 403」
+            const msg =
+              (body && body.msg) ||
+              (typeof body === 'string' ? body.slice(0, 100) : '') ||
+              `网络错误: ${res.statusCode}`
+            const err = new Error(msg)
+            err.status = res.statusCode
+            reject(err)
           }
-          const err = new Error((body && body.msg) || `网络错误: ${res.statusCode}`)
-          err.status = res.statusCode
+        } catch (err) {
+          // success 回调里的异常必须显式 reject，否则 Promise 永远 pending，loading 蒙层也关不掉
           reject(err)
         }
       },
@@ -96,6 +112,7 @@ export async function upload(url, options, isRetry = false) {
   return new Promise((resolve, reject) => {
     Taro.uploadFile({
       url: joinUrl(baseUrl, url),
+      timeout: 60000,
       header: {
         Authorization: authStore.token ? `Bearer ${authStore.token}` : '',
       },
@@ -103,34 +120,41 @@ export async function upload(url, options, isRetry = false) {
       filePath: options.filePath,
       formData: options.formData || {},
       success: async (res) => {
-        if (res.statusCode === 200) {
-          let body = res.data
-          if (typeof body === 'string') {
+        try {
+          if (res.statusCode === 200) {
+            let body = res.data
+            if (typeof body === 'string') {
+              try {
+                body = JSON.parse(body)
+              } catch (e) {}
+            }
+            if (body && body.code > 0) {
+              resolve(body.data)
+            } else {
+              const err = new Error(body ? body.msg : '上传失败')
+              err.status = res.statusCode
+              err.extra = body
+              reject(err)
+            }
+          } else if (res.statusCode === 401) {
+            if (isRetry) {
+              authStore.clear()
+              reject(new Error('登录凭证已失效，请重新进入小程序'))
+              return
+            }
             try {
-              body = JSON.parse(body)
-            } catch (e) {}
-          }
-          if (body && body.code > 0) {
-            resolve(body.data)
+              await authStore.login(true)
+              const retryRes = await upload(url, options, true)
+              resolve(retryRes)
+            } catch (retryErr) {
+              authStore.clear()
+              reject(new Error('自动重新登录失败，请退出重试'))
+            }
           } else {
-            reject(new Error(body ? body.msg : '上传失败'))
+            reject(new Error(`上传错误: ${res.statusCode}`))
           }
-        } else if (res.statusCode === 401) {
-          if (isRetry) {
-            authStore.clear()
-            reject(new Error('登录凭证已失效，请重新进入小程序'))
-            return
-          }
-          try {
-            await authStore.login(true)
-            const retryRes = await upload(url, options, true)
-            resolve(retryRes)
-          } catch (retryErr) {
-            authStore.clear()
-            reject(new Error('自动重新登录失败，请退出重试'))
-          }
-        } else {
-          reject(new Error(`上传错误: ${res.statusCode}`))
+        } catch (err) {
+          reject(err)
         }
       },
       fail(err) {

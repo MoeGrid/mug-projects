@@ -76,7 +76,7 @@ export default function ArcadeConsole({
         >
           <View className='insert-main-text'>
             <Text className='coin-icon'>{insertType === 2 ? '⚡' : '🪙'}</Text>
-            <Text>{insertType === 2 ? '畅玩投币' : 'INSERT COIN 投币'}</Text>
+            <Text>{insertType === 2 ? 'MUG PASS 投币' : 'INSERT COIN 投币'}</Text>
           </View>
           <Text className='insert-sub-text'>{insertSubText}</Text>
         </View>

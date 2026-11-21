@@ -10,7 +10,8 @@ import { AppError, ok } from '../../utils/responses.js';
 import { dateTimeStr, daysFromExpire, daysFromTcgExpire, now, parseDate, tsNow } from '../../utils/date.js';
 import { addMoney, toCents, toMoney } from '../../utils/money.js';
 import { findActiveEvent, listActiveEvents } from '../../models/event.js';
-import { createOrder, findOrderByWeOrderId, updateOrder } from '../../models/order.js';
+import { createOrder, findOrderByWeOrderId } from '../../models/order.js';
+import { findUserForUpdate } from '../../models/user.js';
 import { insertBalanceLog } from '../../models/balance_log.js';
 
 export const walletRouter = new Hono();
@@ -20,6 +21,72 @@ const currentUser = (c) => c.get('user');
 // ---------------------------------------------------------------------------
 // 1. 公开端点：微信支付异步结果安全回调
 // ---------------------------------------------------------------------------
+/**
+ * 支付成功结算：订单状态迁移与余额入账必须在同一事务里完成。
+ *
+ * 幂等靠「条件更新抢占」而不是给订单行加锁：
+ * - 用 `UPDATE ... WHERE id = ? AND status = 0` 抢状态，命中 1 行的事务才继续入账；
+ *   微信并发/重复投递通知时，后到的事务更新 0 行，直接幂等返回。
+ * - 只按主键 id 更新，不依赖 `we_order_id` 是否有索引（否则 SELECT ... FOR UPDATE
+ *   在无索引列上会锁住扫描到的所有订单行）。
+ * - 余额是「先读后算再写」的值，入账前锁用户行，避免与投币/TCG/管理员调账互相覆盖。
+ *
+ * 注意：余额允许为负（罚款场景），这里不做非负限制。
+ */
+async function settlePaidOrder(decrypted) {
+  const weOrderId = String(decrypted.out_trade_no);
+  const paidTotal = Number(decrypted.amount?.total);
+
+  const order = await findOrderByWeOrderId(db, weOrderId);
+  // 未知订单不重试（避免微信无限重发），但必须留痕
+  if (!order) {
+    console.error(`PAY_CALLBACK_ORDER_NOT_FOUND: ${weOrderId}`);
+    return;
+  }
+  // 已处理过（重复通知）：幂等返回成功
+  if (Number(order.status) !== 0) return;
+
+  if (!Number.isFinite(paidTotal) || toCents(order.amount) !== paidTotal) {
+    throw new AppError('订单支付金额错误');
+  }
+
+  const payTime = decrypted.success_time
+    ? dateTimeStr(new Date(parseDate(decrypted.success_time)))
+    : tsNow();
+
+  await db.transaction().execute(async (trx) => {
+    // 原子抢占：只有把 status 从 0 改成 1 的那个事务才入账
+    const claimed = await trx
+      .updateTable('mug_order')
+      .set({ status: 1, pay_time: payTime, update_time: tsNow() })
+      .where('id', '=', order.id)
+      .where('status', '=', 0)
+      .executeTakeFirst();
+
+    if (Number(claimed.numUpdatedRows) === 0) return;
+
+    if (Number(order.type) !== 1) return;
+
+    const user = await findUserForUpdate(trx, order.user_id);
+    if (!user) throw new AppError('订单用户不存在');
+
+    const balance = addMoney(user.balance, order.num);
+    await trx
+      .updateTable('mug_user')
+      .set({ balance, update_time: tsNow() })
+      .where('id', '=', user.id)
+      .execute();
+
+    await insertBalanceLog(trx, {
+      user_id: user.id,
+      change_amount: toMoney(order.num),
+      balance_after: balance,
+      type: 2, // 微信充值
+      remark: '微信支付充值',
+    });
+  });
+}
+
 walletRouter.post('/wechat-pay/notify', async (c) => {
   try {
     const raw = await c.req.text();
@@ -34,29 +101,7 @@ walletRouter.post('/wechat-pay/notify', async (c) => {
     const decrypted = WePaySdk.decryptCallback(bodyJson.resource);
 
     if (decrypted.trade_state === 'SUCCESS') {
-      const order = await findOrderByWeOrderId(db, String(decrypted.out_trade_no));
-      if (order && order.status === 0) {
-        if (toCents(order.amount) !== decrypted.amount.total) {
-          throw new AppError('订单支付金额错误');
-        }
-        const payTime = dateTimeStr(new Date(parseDate(decrypted.success_time)));
-        await updateOrder(db, order.id, { pay_time: payTime, status: 1 });
-
-        if (order.type === 1) {
-          await db.transaction().execute(async (trx) => {
-            const user = await trx.selectFrom('mug_user').selectAll().where('id', '=', order.user_id).executeTakeFirstOrThrow();
-            const balance = addMoney(user.balance, order.num);
-            await trx.updateTable('mug_user').set({ balance, update_time: tsNow() }).where('id', '=', user.id).execute();
-            await insertBalanceLog(trx, {
-              user_id: user.id,
-              change_amount: toMoney(order.num),
-              balance_after: balance,
-              type: 2, // 微信充值
-              remark: '微信支付充值',
-            });
-          });
-        }
-      }
+      await settlePaidOrder(decrypted);
     }
     return c.json({ code: 'SUCCESS', message: '成功' });
   } catch (e) {

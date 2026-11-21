@@ -291,11 +291,11 @@ export default function AdminIndexPage() {
                       <View className='pass-status'>
                         {item.is_monthly ? (
                           <View className='badge-monthly'>
-                            <Text className='badge-text'>🌟 TCG PASS 畅玩</Text>
+                            <Text className='badge-text'>🌟 TCG PASS</Text>
                           </View>
                         ) : (
                           <View className='badge-daily'>
-                            <Text className='badge-text'>🎫 单日畅玩</Text>
+                            <Text className='badge-text'>🎫 单日</Text>
                           </View>
                         )}
                       </View>
@@ -330,7 +330,7 @@ export default function AdminIndexPage() {
                   <Text className='empty-icon'>🪑</Text>
                   <Text className='empty-title'>当前暂无玩家开台打卡</Text>
                   <Text className='empty-subtitle'>
-                    店内若有正在使用卡牌桌椅的玩家，请核对是否未开启畅玩
+                    店内若有正在使用卡牌桌椅的玩家，请核对是否入场
                   </Text>
                 </View>
               )

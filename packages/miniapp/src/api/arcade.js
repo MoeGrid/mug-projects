@@ -24,7 +24,7 @@ export function bleConsumeCoin(deviceId) {
 }
 
 /**
- * 分页获取街机投币记录（支持畅玩免扣与余额投币）
+ * 分页获取街机投币记录（支持MUG PASS免扣与余额投币）
  * @param {{ page?: number, rows?: number }} params
  */
 export function getCoinLogs(params) {

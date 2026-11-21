@@ -8,6 +8,11 @@ export default defineAppConfig({
     'pages/admin/index',
     'pages/admin/user',
   ],
+  networkTimeout: {
+    request: 15000,
+    uploadFile: 60000,
+    downloadFile: 60000,
+  },
   window: {
     backgroundTextStyle: 'dark',
     navigationBarBackgroundColor: '#F8F8F8',

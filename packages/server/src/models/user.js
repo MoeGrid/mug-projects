@@ -22,6 +22,15 @@ export async function findUser(dbh, id) {
   return dbh.selectFrom('mug_user').selectAll().where('id', '=', id).executeTakeFirst();
 }
 
+/**
+ * 事务内锁定用户行（SELECT ... FOR UPDATE）。
+ * 余额是「先读后写」的值，必须在同一事务里先锁行再算，否则并发写会互相覆盖。
+ * 注意：必须在事务句柄（trx）上调用；余额允许为负，这里不做非负约束。
+ */
+export async function findUserForUpdate(dbh, id) {
+  return dbh.selectFrom('mug_user').selectAll().where('id', '=', id).forUpdate().executeTakeFirst();
+}
+
 export async function findUserByOpenId(dbh, openId) {
   return dbh.selectFrom('mug_user').selectAll().where('open_id', '=', openId).executeTakeFirst();
 }

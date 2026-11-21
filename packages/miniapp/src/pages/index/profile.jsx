@@ -117,6 +117,12 @@ export default function ProfilePage() {
       if (updated) {
         setUser(updated)
         authStore.setUser({ ...authStore.user, ...updated })
+        // 服务端会把 tmp/ 头像转存到 image/ 并删除原文件；
+        // 这里必须用返回值刷新本地 avatar，否则第二次保存仍提交已删除的 tmp 路径
+        if (updated.avatar) {
+          setAvatar(updated.avatar)
+          setAvatarUrl(uploadUrl(updated.avatar))
+        }
       }
       Taro.eventCenter.trigger('refreshData')
       showSuccess('个人资料保存成功')

@@ -11,7 +11,7 @@ import { subMoney, toMoney } from '../../utils/money.js';
 import { insertBalanceLog } from '../../models/balance_log.js';
 import { attachDeviceAndGroupToCoin, insertCoinLog } from '../../models/coin_log.js';
 import { findDevice, listGroupsWithDevices } from '../../models/device.js';
-import { findUser } from '../../models/user.js';
+import { findUser, findUserForUpdate } from '../../models/user.js';
 
 export const arcadeRouter = new Hono();
 
@@ -127,50 +127,58 @@ arcadeRouter.post('/coins/remote-insert', async (c) => {
   const operator = currentUser(c);
   const operatorId = operator.id;
 
-  return db.transaction().execute(async (trx) => {
-    const device = await findDevice(trx, deviceId);
-    if (!device) throw new AppError('设备不存在!');
+  // 设备校验、余额预检、EMQX 在线探测和 MQTT 出币都放在事务外：
+  // 出币要走网络（最长 5 秒），放在事务里会长时间占用连接池，也会把用户行锁住太久。
+  const device = await findDevice(db, deviceId);
+  if (!device) throw new AppError('设备不存在!');
 
-    const user = await findUser(trx, operatorId);
-    if (!user) throw new AppError('用户不存在!');
+  const user = await findUser(db, operatorId);
+  if (!user) throw new AppError('用户不存在!');
 
-    const days = daysFromExpire(user.arcade_expire_date);
-    if (toMoney(user.balance) < toMoney(device.price) && days <= 0) {
-      throw new AppError('余额不足!');
-    }
+  const days = daysFromExpire(user.arcade_expire_date);
+  if (toMoney(user.balance) < toMoney(device.price) && days <= 0) {
+    throw new AppError('余额不足!');
+  }
 
-    // 1. 先通过 EMQX 确认设备是否在线
-    const online = await isDeviceOnline(device.client_id);
-    if (!online) {
-      throw new AppError('设备不在线!');
-    }
+  // 1. 先通过 EMQX 确认设备是否在线
+  const online = await isDeviceOnline(device.client_id);
+  if (!online) {
+    throw new AppError('设备不在线!');
+  }
 
-    // 2. 向 MQTT 发布投币指令并等待回执
-    const msgId = nextMsgId();
-    let resp = null;
-    try {
-      resp = await insertCoin(device.client_id, { id: msgId, num: device.coin }, 5000);
-    } catch {
-      throw new AppError('网络开小差了，请重试');
-    }
+  // 2. 向 MQTT 发布投币指令并等待回执
+  const msgId = nextMsgId();
+  let resp = null;
+  try {
+    resp = await insertCoin(device.client_id, { id: msgId, num: device.coin }, 5000);
+  } catch {
+    throw new AppError('网络开小差了，请重试');
+  }
 
-    if (!resp || resp.id !== msgId) {
-      throw new AppError('出币超时，请重试');
-    }
+  if (!resp || resp.id !== msgId) {
+    throw new AppError('出币超时，请重试');
+  }
 
-    // 3. 按照设备回复的结果状态码进行判断与结算
-    const code = resp.code ?? resp.state;
-    if (code === 1) {
-      await settleCoinInTrx(trx, user, device, operatorId);
-      return c.json(ok('投币成功'));
-    } else if (code === 2) {
-      throw new AppError('设备当前不能投币!');
-    } else if (code === 3) {
-      throw new AppError('投币失败! 未知原因!');
-    } else {
-      throw new AppError('投币失败! 响应错误!');
-    }
-  });
+  // 3. 按照设备回复的结果状态码进行判断与结算
+  const code = resp.code ?? resp.state;
+  if (code === 2) throw new AppError('设备当前不能投币!');
+  if (code === 3) throw new AppError('投币失败! 未知原因!');
+  if (code !== 1) throw new AppError('投币失败! 响应错误!');
+
+  // 4. 出币成功后用短事务结算：锁用户行 → 读余额 → 扣费/记账，避免并发投币互相覆盖
+  try {
+    await db.transaction().execute(async (trx) => {
+      const lockedUser = await findUserForUpdate(trx, operatorId);
+      if (!lockedUser) throw new AppError('用户不存在!');
+      await settleCoinInTrx(trx, lockedUser, device, operatorId);
+    });
+  } catch (e) {
+    // 钱已经从机台出来了，结算失败必须留痕，提示用户联系店员而不是让他重试
+    console.error(`COIN_SETTLE_FAILED device=${deviceId} user=${operatorId}:`, e);
+    throw new AppError('出币成功，但结算失败，请联系店员处理');
+  }
+
+  return c.json(ok('投币成功'));
 });
 
 /**
@@ -182,7 +190,8 @@ arcadeRouter.post('/coins/ble-consume', async (c) => {
   const user = currentUser(c);
 
   return db.transaction().execute(async (trx) => {
-    const freshUser = await findUser(trx, user.id);
+    // 锁行后再读余额，避免与其它扣费/入账并发时互相覆盖
+    const freshUser = await findUserForUpdate(trx, user.id);
     if (!freshUser) throw new AppError('用户不存在');
 
     const device = await findDevice(trx, deviceId);

@@ -16,7 +16,7 @@ import {
 } from '../../utils/date.js';
 import {addMoney, toMoney} from '../../utils/money.js';
 import {insertBalanceLog} from '../../models/balance_log.js';
-import {findUser, updateUser, withDays} from '../../models/user.js';
+import {findUser, findUserForUpdate, toPublic, updateUser, withDays} from '../../models/user.js';
 
 export const adminRouter = new Hono();
 
@@ -266,7 +266,8 @@ adminRouter.get('/users', async (c) => {
       per_page: rows,
       current_page: page,
       last_page: Math.max(Math.ceil(total / rows), 1),
-      data: users.map(withDays),
+      // 管理端也只能拿到白名单字段：session_key / open_id 绝不下发
+      data: users.map((item) => withDays(toPublic(item))),
     })
   );
 });
@@ -280,7 +281,7 @@ adminRouter.get('/users/:id', async (c) => {
   if (!id || Number.isNaN(id)) throw new AppError('用户ID无效');
   const user = await findUser(db, id);
   if (!user) throw new AppError('用户不存在!');
-  return c.json(ok(withDays(user)));
+  return c.json(ok(withDays(toPublic(user))));
 });
 
 /**
@@ -294,8 +295,8 @@ adminRouter.patch('/users/:id', async (c) => {
   const {is_admin, is_ban, phone, qq, remark} = await body(
     c,
     z.object({
-      is_admin: zFlag('is_admin').nullish(),
-      is_ban: zFlag('is_ban').nullish(),
+      is_admin: zFlag().nullish(),
+      is_ban: zFlag().nullish(),
       phone: z.string().max(32, '手机号过长').nullish(),
       qq: z.string().max(32, 'QQ过长').nullish(),
       remark: z.string().max(255, '备注过长').nullish(),
@@ -342,7 +343,8 @@ adminRouter.post('/users/:id/adjust-balance', async (c) => {
   );
 
   return db.transaction().execute(async (trx) => {
-    const user = await findUser(trx, id);
+    // 锁用户行后再读余额/到期时间，避免并发调账或与投币/入场互相覆盖
+    const user = await findUserForUpdate(trx, id);
     if (!user) throw new AppError('用户不存在!');
 
     if (type === 1) {

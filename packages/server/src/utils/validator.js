@@ -16,7 +16,8 @@ export function zNum(name) {
   return z.coerce.number({ error: `${name}必须是有效数值` });
 }
 
-export function zFlag(name) {
+// 布尔开关只会被归一化成 0/1，不产生错误提示，因此不需要 name 形参。
+export function zFlag() {
   return z
     .union([z.boolean(), z.number(), z.string()])
     .transform((v) => {

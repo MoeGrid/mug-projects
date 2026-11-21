@@ -92,9 +92,9 @@ export default function CardPassSection({
             setActivating(true)
             showLoading('正在登记入场...')
             const res = await tcgEntry()
-            await authStore.refreshAvailable()
-            await fetchStatus()
             showSuccess(res.message || '入场成功，欢迎进店！')
+            // 入场已成功，后续刷新失败只影响展示，不能报成「入场失败」诱导重复扣费
+            Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
             if (onRechargeSuccess) {
               onRechargeSuccess(res)
             }
@@ -132,9 +132,9 @@ export default function CardPassSection({
           setActivating(true)
           showLoading('正在登记入场...')
           const res = await tcgEntry()
-          await authStore.refreshAvailable()
-          await fetchStatus()
           showSuccess(res.message || '入场成功，欢迎进店！')
+          // 入场已成功，后续刷新失败只影响展示，不能报成「入场失败」诱导重复扣费
+          Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
           }
@@ -171,9 +171,9 @@ export default function CardPassSection({
         try {
           showLoading('正在办理 TCG PASS...')
           const res = await buyTcgPass()
-          await authStore.refreshAvailable()
-          await fetchStatus()
           showSuccess(res.message || 'TCG PASS 办理成功！')
+          // 钱已经扣了：刷新失败不能报成「办理失败」，否则重试会再扣一次（服务端非幂等）
+          Promise.allSettled([authStore.refreshAvailable(), fetchStatus()])
           if (onRechargeSuccess) {
             onRechargeSuccess(res)
           }

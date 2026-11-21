@@ -29,8 +29,8 @@ export default function BuyPage() {
   // 加载活动列表
   useEffect(() => {
     async function init() {
-      await authStore.login()
       try {
+        await authStore.login()
         showLoading('加载优惠活动...')
         const list = await getRechargePackages()
         setEvents(list || [])
@@ -96,7 +96,8 @@ export default function BuyPage() {
       const paymentParams = await createRechargeOrder(val)
       await Taro.requestPayment(paymentParams)
       showSuccess('充值成功！')
-      await authStore.refreshAvailable()
+      // 支付已经完成，刷新余额失败不能反过来告诉用户「支付失败」
+      authStore.refreshAvailable().catch(() => {})
     } catch (e) {
       hideToast()
       const msg = e?.errMsg || e?.message || '支付取消'
@@ -119,7 +120,8 @@ export default function BuyPage() {
       const paymentParams = await createPackageOrder(id)
       await Taro.requestPayment(paymentParams)
       showSuccess('购买成功！')
-      await authStore.refreshAvailable()
+      // 同上：刷新失败不影响支付结论
+      authStore.refreshAvailable().catch(() => {})
     } catch (e) {
       hideToast()
       const msg = e?.errMsg || e?.message || '支付取消'

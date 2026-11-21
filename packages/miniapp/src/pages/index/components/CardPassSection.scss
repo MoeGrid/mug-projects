@@ -1,4 +1,4 @@
-/* TCG 卡牌畅玩模块样式 - 极简准入版 */
+/* TCG 卡牌入场模块样式 - 极简准入版 */
 
 .tcg-mode-container {
   display: flex;
@@ -6,7 +6,7 @@
   margin-bottom: 32px;
   gap: 20px;
 
-  /* ================= 今日畅玩状态控制台 ================= */
+  /* ================= 今日入场状态控制台 ================= */
   .today-console-card {
     background: #ffffff;
     border-radius: 26px;
@@ -161,7 +161,7 @@
       }
     }
 
-    /* 已开通/畅玩中状态（统一清爽白底风格） */
+    /* 已入场状态（统一清爽白底风格） */
     &.console-card-active {
       background: #ffffff;
       border: 2px solid rgba(46, 213, 115, 0.4);
@@ -229,7 +229,7 @@
     }
   }
 
-  /* ================= 3. 升级 TCG 畅玩月卡 ================= */
+  /* ================= 3. 升级 TCG PASS ================= */
   .monthly-upgrade-card {
     background: #ffffff;
     border-radius: 26px;

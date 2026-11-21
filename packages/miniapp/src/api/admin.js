@@ -24,7 +24,7 @@ export function adminGetConsumptions(params) {
 }
 
 /**
- * 获取当前在场有效 TCG 畅玩记录（用于无人值守监控抽查）
+ * 获取当前在场有效 TCG 入场记录（用于无人值守监控抽查）
  */
 export function adminGetTcgActiveSessions() {
   return get('/api/v1/admin/tcg/active-sessions')

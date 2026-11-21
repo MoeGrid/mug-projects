@@ -192,7 +192,7 @@ export default function RecordPage() {
 
                   <View className='right-col'>
                     {item.pay_type === 2 ? (
-                      <View className='badge-pill free-pill'>⚡ 畅玩免扣</View>
+                      <View className='badge-pill free-pill'>⚡ MUG PASS</View>
                     ) : (
                       <Text className='cost-num'>-¥{item.cost_amount}</Text>
                     )}
